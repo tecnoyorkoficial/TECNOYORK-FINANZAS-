@@ -87,6 +87,8 @@ function guardarInventarioNegocio() {
     localStorage.setItem("biz_proveedores", JSON.stringify(proveedores));
     localStorage.setItem("biz_compras", JSON.stringify(compras));
     localStorage.setItem("biz_arqueos", JSON.stringify(arqueos));
+    if (movimientosStock.length > 300) movimientosStock = movimientosStock.slice(0, 300);
+    localStorage.setItem("biz_movstock", JSON.stringify(movimientosStock));
 
     if (window.db && window.auth?.currentUser && navigator.onLine) {
   const uid = negocioId || window.auth.currentUser.uid;
@@ -96,6 +98,7 @@ function guardarInventarioNegocio() {
           proveedores: proveedores,
           compras: compras,
           arqueos: arqueos,
+          movimientosStock: movimientosStock,
           actualizado: new Date().toISOString()
         },
         { merge: false }
@@ -106,6 +109,7 @@ async function cargarInventarioNegocio() {
   proveedores = JSON.parse(localStorage.getItem("biz_proveedores") || "[]");
   compras = JSON.parse(localStorage.getItem("biz_compras") || "[]");
   arqueos = JSON.parse(localStorage.getItem("biz_arqueos") || "[]");
+  movimientosStock = JSON.parse(localStorage.getItem("biz_movstock") || "[]");
   
   if (window.db && window.auth?.currentUser && navigator.onLine) {
   try {
@@ -115,9 +119,11 @@ async function cargarInventarioNegocio() {
         if (d.proveedores) proveedores = d.proveedores;
         if (d.compras) compras = d.compras;
         if (d.arqueos) arqueos = d.arqueos;
+        if (d.movimientosStock) movimientosStock = d.movimientosStock;
         localStorage.setItem("biz_proveedores", JSON.stringify(proveedores));
         localStorage.setItem("biz_compras", JSON.stringify(compras));
         localStorage.setItem("biz_arqueos", JSON.stringify(arqueos));
+        localStorage.setItem("biz_movstock", JSON.stringify(movimientosStock));
       }
     } catch (e) {
       console.error("Error cargando inventario:", e);
