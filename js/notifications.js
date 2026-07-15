@@ -4,7 +4,7 @@
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "d983fb39-f003-48e5-82f9-2cc0aeaf4f04",
-      serviceWorkerParam: { scope: "/PRESUPUESTO-2.0/" },
+      serviceWorkerParam: { scope: "/TECNOYORK-FINANZAS-/" },
       serviceWorkerPath: "sw.js"
     });
   });
