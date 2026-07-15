@@ -27,8 +27,8 @@
     {
       "name": "Nuevo movimiento",
       "short_name": "Nuevo",
-      "url": "/PRESUPUESTO-2.0/?action=new",
-      "icons": [{ "src": "/PRESUPUESTO-2.0/assets/img/icon-192.png", "sizes": "192x192" }]
+      "url": "/TECNOYORK-FINANZAS-/?action=new",
+      "icons": [{ "src": "'/TECNOYORK-FINANZAS-/assets/img/icon-192.png", "sizes": "192x192" }]
     }
   ],
   "screenshots": [],
