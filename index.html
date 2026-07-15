@@ -354,9 +354,6 @@
   <input type="text" id="bizIVAGeneral" placeholder="19" style="margin-bottom:8px;">
   <label>Términos y condiciones (pie de cotización)</label>
   <textarea id="bizTerminos" rows="3"style="width:100%;border-radius:12px;padding:10px;background:var(--inputBg);color:var(--inputText);border:1px solid var(--inputBorder);font-family:inherit;font-size:12px;resize:vertical;" placeholder="Ej: Pago contra entrega. Validez: 15 días."></textarea>
-  <label style="margin-top:12px;">Campos adicionales para Órdenes de Trabajo</label>
-<div id="listaCamposOrdenExtra" style="margin-bottom:8px;"></div>
-<button class="secondary" onclick="agregarCampoOrdenExtra()">➕ Agregar campo</button>
             <label>Color de cotizaciones y facturas</label>
   <div class="grid4" style="margin-bottom:10px">
     <div class="tema-preview" id="colorDocVerde" style="background:linear-gradient(135deg,#22c55e,#16a34a)" onclick="aplicarColorDocumentos('#22c55e')">🟢<br>Verde</div>
@@ -368,6 +365,9 @@
     <label style="margin:0;flex-shrink:0;">Otro color:</label>
     <input type="color" id="colorDocPersonalizado" value="#22c55e" style="width:50px;height:36px;padding:2px;cursor:pointer;margin:0;" onchange="aplicarColorDocumentos(this.value)">
   </div>
+  <label style="margin-top:12px;">Campos adicionales para Órdenes de Trabajo</label>
+  <div id="listaCamposOrdenExtra" style="margin-bottom:8px;"></div>
+  <button class="secondary" onclick="agregarCampoOrdenExtra()" style="margin-bottom:10px;">➕ Agregar campo</button>
             <button class="primary" onclick="guardarConfigNegocio()" style="margin-top:8px;">💾 Guardar configuración</button>
   <button id="btnImportarTY" class="secondary" onclick="importarCatalogoTecnoYork()" style="margin-top:8px;background:rgba(34,197,94,.15);color:var(--ok);">📦 Importar Catálogo TecnoYork (578 productos)</button>
           </div>
@@ -562,6 +562,7 @@
         </div>
         <label>Problema reportado *</label>
         <input type="text" id="ordenProblema" placeholder="Pantalla rota, no enciende...">
+        <div id="camposOrdenExtraContainer"></div>
         <label>Observaciones</label>
         <textarea id="ordenObservaciones" rows="2" style="width:100%;border-radius:12px;padding:10px;background:var(--inputBg);color:var(--inputText);border:1px solid var(--inputBorder);font-family:inherit;font-size:12px;resize:vertical;" placeholder="Notas adicionales..."></textarea>
         <label>Buscar producto del catálogo (opcional)</label>

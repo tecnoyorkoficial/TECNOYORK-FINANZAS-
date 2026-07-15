@@ -250,11 +250,11 @@ function guardarOrden() {
     return hist;
   })(),
   camposExtra: (() => {
-  const campos = configNegocio.camposOrdenExtra || [];
-  const valores = {};
-  campos.forEach(c => { valores[c.id] = $("ordenExtra_"+c.id)?.value.trim() || ""; });
-  return valores;
-})(),
+    const campos = configNegocio.camposOrdenExtra || [];
+    const valores = {};
+    campos.forEach(c => { valores[c.id] = $("ordenExtra_"+c.id)?.value.trim() || ""; });
+    return valores;
+  })(),
   productoId: ordenProductoSeleccionadoId,
   stockDescontado: ordenEditandoId ? (ordenes.find(o => o.id === ordenEditandoId)?.stockDescontado || false) : false
 };
@@ -545,6 +545,7 @@ function guardarFirma() {
         toast("✅ Firma guardada");
       }
 function cargarConfigNegocioUI() {
+    renderCamposOrdenAdmin();
     if ($("bizRazonSocial")) $("bizRazonSocial").value = configNegocio.razonSocial || "";
     if ($("bizNIT")) $("bizNIT").value = configNegocio.nit || "";
     if ($("bizDireccion")) $("bizDireccion").value = configNegocio.direccion || "";
@@ -609,6 +610,35 @@ function cargarLogo(event) {
     };
     reader.readAsDataURL(file);
   }
+function agregarCampoOrdenExtra() {
+  const label = prompt("Nombre del campo (ej: Color, Accesorios incluidos...)");
+  if (!label || !label.trim()) return;
+  if (!configNegocio.camposOrdenExtra) configNegocio.camposOrdenExtra = [];
+  configNegocio.camposOrdenExtra.push({ id: "campo_" + Date.now(), label: label.trim() });
+  localStorage.setItem("biz_config", JSON.stringify(configNegocio));
+  guardarConfigNegocio();
+  renderCamposOrdenAdmin();
+}
+function eliminarCampoOrdenExtra(id) {
+  if (!confirm("¿Eliminar este campo? No se borrará de órdenes ya creadas.")) return;
+  configNegocio.camposOrdenExtra = (configNegocio.camposOrdenExtra || []).filter(c => c.id !== id);
+  guardarConfigNegocio();
+  renderCamposOrdenAdmin();
+}
+function renderCamposOrdenAdmin() {
+  const el = $("listaCamposOrdenExtra");
+  if (!el) return;
+  const campos = configNegocio.camposOrdenExtra || [];
+  el.innerHTML = campos.length ? campos.map(c =>
+    `<div class="item" style="display:flex;justify-content:space-between;align-items:center">
+       <span>${c.label}</span>
+       <button class="small-btn" onclick="eliminarCampoOrdenExtra('${c.id}')" style="background:rgba(239,68,68,.15);color:var(--bad)">🗑️</button>
+     </div>`
+  ).join("") : '<div class="small">Sin campos adicionales</div>';
+}
+window.agregarCampoOrdenExtra = agregarCampoOrdenExtra;
+window.eliminarCampoOrdenExtra = eliminarCampoOrdenExtra;
+window.renderCamposOrdenAdmin = renderCamposOrdenAdmin;
 function guardarConfigNegocio() {
     const logoActual = configNegocio.logo || "";
     
@@ -639,35 +669,6 @@ function guardarConfigNegocio() {
       toast("✅ Configuración guardada localmente");
     }
   }
-  function agregarCampoOrdenExtra() {
-  const label = prompt("Nombre del campo (ej: Color, Accesorios incluidos...)");
-  if (!label || !label.trim()) return;
-  if (!configNegocio.camposOrdenExtra) configNegocio.camposOrdenExtra = [];
-  configNegocio.camposOrdenExtra.push({ id: "campo_" + Date.now(), label: label.trim(), tipo: "text", requerido: false });
-  localStorage.setItem("biz_config", JSON.stringify(configNegocio));
-  guardarConfigNegocio(); // ya sincroniza con negocio_data en Firebase
-  renderCamposOrdenAdmin();
-}
-function eliminarCampoOrdenExtra(id) {
-  if (!confirm("¿Eliminar este campo? No se borrará de órdenes ya creadas.")) return;
-  configNegocio.camposOrdenExtra = (configNegocio.camposOrdenExtra || []).filter(c => c.id !== id);
-  guardarConfigNegocio();
-  renderCamposOrdenAdmin();
-}
-function renderCamposOrdenAdmin() {
-  const el = $("listaCamposOrdenExtra");
-  if (!el) return;
-  const campos = configNegocio.camposOrdenExtra || [];
-  el.innerHTML = campos.length ? campos.map(c =>
-    `<div class="item" style="display:flex;justify-content:space-between;align-items:center">
-       <span>${c.label}</span>
-       <button class="small-btn" onclick="eliminarCampoOrdenExtra('${c.id}')" style="background:rgba(239,68,68,.15);color:var(--bad)">🗑️</button>
-     </div>`
-  ).join("") : '<div class="small">Sin campos adicionales</div>';
-}
-window.agregarCampoOrdenExtra = agregarCampoOrdenExtra;
-window.eliminarCampoOrdenExtra = eliminarCampoOrdenExtra;
-
 async function guardarEnCola(movimiento){const db=await initIndexedDB();const tx=db.transaction("pendingQueue","readwrite");tx.objectStore("pendingQueue").add({...movimiento,createdAt:Date.now()});await new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onerror=reject});await actualizarContadorPendientes();}
 async function guardarConOffline(datos,ctx){const idLocal="local_"+Date.now()+"_"+Math.random().toString(36).substr(2,8);const datosConId={...datos,ID:idLocal};if(ctx===contexto){data.push(datosConId);guardarDatos();}else{const otraData=JSON.parse(localStorage.getItem(keyForCtx("dataCache",ctx))||"[]");otraData.push(datosConId);localStorage.setItem(keyForCtx("dataCache",ctx),JSON.stringify(otraData));}if(navigator.onLine&&window.db&&window.auth?.currentUser){try{const colName=ctx==="negocio"?"movimientos_negocio":"movimientos_personal";const fbRef=await window.fbAddDoc(window.fbCollection(window.db,"users",window.auth.currentUser.uid,colName),datos);const fbId=fbRef.id;if(ctx===contexto){const idx=data.findIndex(d=>String(d.ID)===idLocal);if(idx!==-1)data[idx].ID=fbId;guardarDatos();}else{const otraData=JSON.parse(localStorage.getItem(keyForCtx("dataCache",ctx))||"[]");const idx=otraData.findIndex(d=>String(d.ID)===idLocal);if(idx!==-1)otraData[idx].ID=fbId;localStorage.setItem(keyForCtx("dataCache",ctx),JSON.stringify(otraData));}return fbId;}catch(e){await guardarEnCola({idLocal,datos,contexto:ctx});toast("📡 Pendiente");return idLocal;}}else{await guardarEnCola({idLocal,datos,contexto:ctx});toast("📡 Pendiente");return idLocal;}}
 async function cargarDesdeFirebase(){if(!window.db||!window.auth?.currentUser)return false;const colNamePersonal="movimientos_personal";const colNameNegocio="movimientos_negocio";const uidCarga=negocioId||window.auth.currentUser.uid;try{const snapPersonal=await window.fbGetDocs(window.fbCollection(window.db,"users",uidCarga,colNamePersonal));const fbPersonal=[];snapPersonal.forEach(doc=>fbPersonal.push({...doc.data(),ID:doc.id}));const snapNegocio=await window.fbGetDocs(window.fbCollection(window.db,"users",uidCarga,colNameNegocio));const fbNegocio=[];snapNegocio.forEach(doc=>fbNegocio.push({...doc.data(),ID:doc.id}));localStorage.setItem(keyForCtx("dataCache","personal"),JSON.stringify(fbPersonal));localStorage.setItem(keyForCtx("dataCache","negocio"),JSON.stringify(fbNegocio));if(contexto==="personal")data=fbPersonal;else data=fbNegocio;const pendientes=await obtenerCola();const pendientesPorContexto=pendientes.filter(p=>p.contexto===contexto);for(const p of pendientesPorContexto){if(!data.some(d=>String(d.ID)===String(p.idLocal)))data.push({...p.datos,ID:p.idLocal});}guardarDatos();return true;}catch(e){if(contexto==="personal")data=JSON.parse(localStorage.getItem(keyForCtx("dataCache","personal"))||"[]");else data=JSON.parse(localStorage.getItem(keyForCtx("dataCache","negocio"))||"[]");return false;}}

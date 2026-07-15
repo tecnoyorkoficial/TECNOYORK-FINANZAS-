@@ -299,12 +299,12 @@ function abrirNuevaOrden(ordenData = null) {
     $("ordenProblema").value = ordenData?.problema || "";
     $("ordenObservaciones").value = ordenData?.observaciones || "";
     const contExtra = $("camposOrdenExtraContainer");
-if (contExtra) {
-  const campos = configNegocio.camposOrdenExtra || [];
-  contExtra.innerHTML = campos.map(c =>
-    `<label>${c.label}</label><input type="text" id="ordenExtra_${c.id}" value="${(ordenData?.camposExtra?.[c.id] || "").replace(/"/g,'&quot;')}">`
-  ).join("");
-}
+    if (contExtra) {
+      const campos = configNegocio.camposOrdenExtra || [];
+      contExtra.innerHTML = campos.map(c =>
+        `<label>${c.label}</label><input type="text" id="ordenExtra_${c.id}" value="${(ordenData?.camposExtra?.[c.id] || "").replace(/"/g,'&quot;')}">`
+      ).join("");
+    }
     $("ordenPrecioEstimado").value = ordenData?.precioEstimado ? Number(ordenData.precioEstimado).toLocaleString("es-CO") : "";
     $("ordenEstado").value = ordenData?.estado || "recibido";
   $("ordenGarantiaDias").value = ordenData?.garantiaDias ?? 30;
@@ -413,12 +413,12 @@ function reclamarGarantia(id) {
     const orig = ordenes.find(o => o.id === id);
     if (!orig) { toast("❌ Orden no encontrada"); return; }
     const dias = Math.floor((new Date() - new Date(orig.fechaEntrega + "T00:00:00")) / 86400000);
-const limite = orig.garantiaDias ?? 30;
-if (dias > limite) {
-  toast("❌ La garantía venció hace " + (dias - limite) + " día" + ((dias - limite) !== 1 ? "s" : ""));
-  return;
-}
-if (!confirm(`🛡️ Dentro de garantía (${dias}/${limite} días). ¿Crear orden de garantía sin cobro?`)) return;
+    const limite = orig.garantiaDias ?? 30;
+    if (dias > limite) {
+      toast("❌ La garantía venció hace " + (dias - limite) + " día" + ((dias-limite)!==1?"s":""));
+      return;
+    }
+    if (!confirm(`🛡️ Dentro de garantía (${dias}/${limite} días). ¿Crear orden de garantía sin cobro?`)) return;
     const nueva = {
       id: "orden_" + Date.now(),
       numero: generarNumeroOrden(),
@@ -426,7 +426,7 @@ if (!confirm(`🛡️ Dentro de garantía (${dias}/${limite} días). ¿Crear ord
       clienteTelefono: orig.clienteTelefono,
       marca: orig.marca, modelo: orig.modelo || "",
       problema: "🛡️ GARANTÍA — " + orig.problema,
-  observaciones: "Reclamo de garantía de orden " + orig.numero + " (entregada " + orig.fechaEntrega + ")",
+      observaciones: "Reclamo de garantía de orden " + orig.numero + " (entregada " + orig.fechaEntrega + ")",
       precioEstimado: 0, precioFinal: null,
       estado: "recibido", fotos: [], facturaId: null,
       garantiaDias: orig.garantiaDias ?? 30,
@@ -464,7 +464,6 @@ function renderListaOrdenes() {
     }
     
     filtradas.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    const hoyMs = new Date();
     
     if (filtradas.length === 0) {
       cont.innerHTML = '<div class="alert mid">No hay órdenes de trabajo</div>';
@@ -484,6 +483,10 @@ function renderListaOrdenes() {
           </div>
           <div style="font-size:12px;margin-bottom:2px;">👤 ${o.clienteNombre} ${o.clienteTelefono ? '· 📞 ' + o.clienteTelefono : ''}</div>
           <div style="font-size:12px;margin-bottom:4px;color:var(--muted);">📱 ${o.marca} ${o.modelo || ''} — ${o.problema}</div>
+          ${Object.entries(o.camposExtra || {}).filter(([k,v])=>v).map(([k,v]) => {
+            const campo = (configNegocio.camposOrdenExtra||[]).find(c=>c.id===k);
+            return campo ? `<div style="font-size:11px;margin-bottom:2px;color:var(--muted);">🔸 ${campo.label}: ${v}</div>` : '';
+          }).join('')}
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <span style="font-weight:700;font-size:14px;color:var(--ok);">${o.precioFinal ? money(o.precioFinal) : (o.precioEstimado ? 'Est: ' + money(o.precioEstimado) : 'Sin precio')}</span>
             <span class="small">${o.fecha}</span>
@@ -1023,6 +1026,7 @@ function renderListaFacturas() {
               <span class="quote-status ${f.estado === 'pagada' ? 'aprobada' : 'enviada'}">${f.estado === 'pagada' ? '✅ PAGADA' : '⏳ SE DEBE'}</span>
             </div>
             <div style="font-size:12px;margin-bottom:4px;">👤 ${f.clienteNombre} ${f.clienteEmpresa ? '· ' + f.clienteEmpresa : ''}</div>
+            <div style="font-size:11px;margin-bottom:4px;color:var(--muted);">${(f.productos||[]).map(p => p.descripcion || p.nombre).filter(Boolean).join(' · ')}</div>
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <span style="font-weight:700;font-size:15px;color:var(--ok);">${money(f.total)}</span>
               <span class="small">${f.fecha}</span>

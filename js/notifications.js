@@ -1,10 +1,9 @@
-// js/notifications.js — OneSignal push + notificaciones internas de la app
+// js/notifications.js — notificaciones internas de la app
 
 function onUserChanged(user){
         if (user) {
   localStorage.setItem("uid", user.uid);
   window.currentUser = user;
-  
           const loginScr=$("loginScreen");
           const appCont=$("appContent");
           const overlay=$("successOverlay");
@@ -66,7 +65,6 @@ async function cargarNotificaciones(){
     generarNotificacionesSiCorresponde();
     actualizarBadgeNotif();
   }
-
 function agregarNotificacion(tipo, titulo, mensaje, refId, ctx) {
   let n = getNotificaciones();
   if (refId && n.some(x => x.refId === refId)) return;
@@ -74,7 +72,6 @@ function agregarNotificacion(tipo, titulo, mensaje, refId, ctx) {
   if (n.length > 100) n = n.slice(0, 100);
   guardarNotificaciones(n);
   actualizarBadgeNotif();
-  enviarPushNotificacion(titulo, mensaje);
 }
 function generarNotificaciones(){
     (facturas||[]).forEach(f=>{
