@@ -229,8 +229,6 @@ function guardarOrden() {
       marca,
       modelo,
       problema,
-      clave: $("ordenClave").value.trim(),
-      imei: $("ordenIMEI").value.trim(),
       observaciones: $("ordenObservaciones").value.trim(),
       precioEstimado: parseMonto($("ordenPrecioEstimado").value),
       precioFinal: ordenEditandoId ? (ordenes.find(o => o.id === ordenEditandoId)?.precioFinal || null) : null,

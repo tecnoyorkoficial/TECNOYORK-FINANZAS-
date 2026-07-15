@@ -49,7 +49,6 @@ function generarReciboOrdenPDF(id) {
           <div style="border:1px solid #e5e7eb;border-radius:10px;padding:14px 18px;">
             <div style="font-size:11px;font-weight:700;color:${colorBase};letter-spacing:1px;margin-bottom:8px;">DATOS DEL EQUIPO</div>
             <div style="font-size:12px;margin-bottom:4px;"><b>Marca/Modelo:</b> ${orden.marca} ${orden.modelo || ''}</div>
-            ${orden.imei ? `<div style="font-size:12px;margin-bottom:4px;"><b>IMEI:</b> ${orden.imei}</div>` : ''}
             <div style="font-size:12px;margin-bottom:4px;"><b>Problema reportado:</b> ${orden.problema}</div>
             ${orden.observaciones ? `<div style="font-size:12px;color:#555;"><b>Observaciones:</b> ${orden.observaciones}</div>` : ''}
             ${Object.entries(orden.camposExtra || {}).filter(([k,v])=>v).map(([k,v]) => {

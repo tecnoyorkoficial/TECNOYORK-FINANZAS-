@@ -297,8 +297,6 @@ function abrirNuevaOrden(ordenData = null) {
     $("ordenMarca").value = ordenData?.marca || "";
     $("ordenModelo").value = ordenData?.modelo || "";
     $("ordenProblema").value = ordenData?.problema || "";
-    $("ordenClave").value = ordenData?.clave || "";
-    $("ordenIMEI").value = ordenData?.imei || "";
     $("ordenObservaciones").value = ordenData?.observaciones || "";
     const contExtra = $("camposOrdenExtraContainer");
 if (contExtra) {
@@ -415,11 +413,12 @@ function reclamarGarantia(id) {
     const orig = ordenes.find(o => o.id === id);
     if (!orig) { toast("❌ Orden no encontrada"); return; }
     const dias = Math.floor((new Date() - new Date(orig.fechaEntrega + "T00:00:00")) / 86400000);
-    const limite = orig.garantiaDias ?? 30;
-    const msg = dias > limite
-      ? `⚠️ Han pasado ${dias} días y la garantía era de ${limite} días. ¿Crear orden de garantía sin cobro de todas formas?`
-      : `🛡️ Dentro de garantía (${dias}/${limite} días). ¿Crear orden de garantía sin cobro?`;
-    if (!confirm(msg)) return;
+const limite = orig.garantiaDias ?? 30;
+if (dias > limite) {
+  toast("❌ La garantía venció hace " + (dias - limite) + " día" + ((dias - limite) !== 1 ? "s" : ""));
+  return;
+}
+if (!confirm(`🛡️ Dentro de garantía (${dias}/${limite} días). ¿Crear orden de garantía sin cobro?`)) return;
     const nueva = {
       id: "orden_" + Date.now(),
       numero: generarNumeroOrden(),
@@ -427,8 +426,7 @@ function reclamarGarantia(id) {
       clienteTelefono: orig.clienteTelefono,
       marca: orig.marca, modelo: orig.modelo || "",
       problema: "🛡️ GARANTÍA — " + orig.problema,
-      clave: "", imei: orig.imei || "",
-      observaciones: "Reclamo de garantía de orden " + orig.numero + " (entregada " + orig.fechaEntrega + ")",
+  observaciones: "Reclamo de garantía de orden " + orig.numero + " (entregada " + orig.fechaEntrega + ")",
       precioEstimado: 0, precioFinal: null,
       estado: "recibido", fotos: [], facturaId: null,
       garantiaDias: orig.garantiaDias ?? 30,
@@ -466,6 +464,7 @@ function renderListaOrdenes() {
     }
     
     filtradas.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const hoyMs = new Date();
     
     if (filtradas.length === 0) {
       cont.innerHTML = '<div class="alert mid">No hay órdenes de trabajo</div>';
@@ -475,6 +474,8 @@ function renderListaOrdenes() {
     cont.innerHTML = filtradas.map(o => {
       const est = ESTADOS_ORDEN[o.estado] || ESTADOS_ORDEN.recibido;
       const siguienteEstado = { recibido: "diagnostico", diagnostico: "en_reparacion", en_reparacion: "listo", listo: "entregado" } [o.estado];
+      const diasDesdeEntrega = o.fechaEntrega ? Math.floor((new Date() - new Date(o.fechaEntrega + "T00:00:00")) / 86400000) : null;
+      const garantiaVencida = diasDesdeEntrega !== null && diasDesdeEntrega > (o.garantiaDias ?? 30);
       return `
         <div class="quote-card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -493,7 +494,10 @@ function renderListaOrdenes() {
             <button class="small-btn success-btn" onclick="generarReciboOrdenPDF('${o.id}')">📄 Recibo</button>
             ${siguienteEstado ? `<button class="small-btn warn-btn" onclick="cambiarEstadoOrden('${o.id}','${siguienteEstado}')">➡️ ${ESTADOS_ORDEN[siguienteEstado].label}</button>` : ''}
             ${(o.facturaId && !esTecnico()) ? `<button class="small-btn" style="background:rgba(34,197,94,.15);color:var(--ok);" onclick="switchQuotesSubTab('facturas',null);document.querySelectorAll('.tab-mini')[1]?.click();">🧾 Ver factura</button>` : ''}
-  ${o.estado === "entregado" ? `<button class="small-btn" style="background:rgba(34,197,94,.15);color:var(--ok);" onclick="reclamarGarantia('${o.id}')">🛡️ Garantía</button>` : '' }
+  ${o.estado === "entregado" ? (garantiaVencida
+    ? `<button class="small-btn" disabled title="Garantía vencida (${diasDesdeEntrega}/${o.garantiaDias ?? 30} días)" style="background:rgba(148,163,184,.15);color:var(--muted);cursor:not-allowed;opacity:.6;">🛡️ Garantía vencida</button>`
+    : `<button class="small-btn" style="background:rgba(34,197,94,.15);color:var(--ok);" onclick="reclamarGarantia('${o.id}')">🛡️ Garantía</button>`
+  ) : '' }
   <button class="small-btn" onclick="enviarWhatsAppOrden('${o.id}')" style="background:rgba(34,197,94,.15);color:#25d366;">📲 WA</button>
   <button class="small-btn" onclick="eliminarOrden('${o.id}')" style="background:rgba(239,68,68,.15);color:var(--bad);">🗑️</button> </div> </div>
   `;
