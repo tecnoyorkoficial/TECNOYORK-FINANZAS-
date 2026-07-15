@@ -311,6 +311,31 @@ function activarSincronizacionRealTime() {
   }
 });
   
+        // ✅ Listener para órdenes de trabajo
+        const ordenesRef = window.fbDoc(window.db, "negocio_ordenes", userId);
+        const unsubscribeOrdenes = window.fbOnSnapshot(ordenesRef, (doc) => {
+  if (doc.exists() && doc.data().ordenes) {
+    ordenes = doc.data().ordenes;
+    localStorage.setItem("biz_ordenes", JSON.stringify(ordenes));
+    renderListaOrdenes();
+  }
+});
+
+        // ✅ Listener para proveedores, compras, arqueos y movimientos de stock
+        const inventarioRef = window.fbDoc(window.db, "negocio_inventario", userId);
+        const unsubscribeInventario = window.fbOnSnapshot(inventarioRef, (doc) => {
+  if (doc.exists()) {
+    const d = doc.data();
+    if (d.proveedores) { proveedores = d.proveedores; localStorage.setItem("biz_proveedores", JSON.stringify(proveedores)); }
+    if (d.compras) { compras = d.compras; localStorage.setItem("biz_compras", JSON.stringify(compras)); }
+    if (d.arqueos) { arqueos = d.arqueos; localStorage.setItem("biz_arqueos", JSON.stringify(arqueos)); }
+    if (d.movimientosStock) { movimientosStock = d.movimientosStock; localStorage.setItem("biz_movstock", JSON.stringify(movimientosStock)); }
+    if (invSubTabActual === "compras" && typeof renderListaCompras === "function") renderListaCompras();
+    if (invSubTabActual === "movimientos" && typeof renderListaMovimientosStock === "function") renderListaMovimientosStock();
+    actualizarKpisInventario();
+  }
+});
+
         // Unificar todas las unsubscriptions
         unsubscribeRealTime = () => {
           unsubscribePersonal();
@@ -322,6 +347,8 @@ function activarSincronizacionRealTime() {
           unsubscribePresupuestos();
           unsubscribeNegocioData();
           unsubscribeCatalogo();
+          unsubscribeOrdenes();
+          unsubscribeInventario();
         };
       }
 async function sincronizarPendientes(){if(syncInProgress)return;if(!window.db||!window.auth?.currentUser)return;if(!navigator.onLine)return;syncInProgress=true;try{const cola=await obtenerCola();if(cola.length===0){syncInProgress=false;return;}toast(`🔄 Sincronizando ${cola.length}...`);for(const item of cola){try{const colName=item.contexto==="negocio"?"movimientos_negocio":"movimientos_personal";const ref=await window.fbAddDoc(window.fbCollection(window.db,"users",window.auth.currentUser.uid,colName),item.datos);const datosConId={...item.datos,ID:ref.id};if(item.contexto===contexto){data=data.filter(d=>String(d.ID)!==String(item.idLocal)&&String(d.ID)!==String(ref.id));data.push(datosConId);}else{const otraData=JSON.parse(localStorage.getItem(keyForCtx("dataCache",item.contexto))||"[]");const nuevaOtra=otraData.filter(d=>String(d.ID)!==String(item.idLocal));nuevaOtra.push(datosConId);localStorage.setItem(keyForCtx("dataCache",item.contexto),JSON.stringify(nuevaOtra));}const factAfectada=facturas.find(f=>f.movimientoId===item.idLocal);if(factAfectada){factAfectada.movimientoId=ref.id;guardarDatosNegocio();}await eliminarDeCola(item.id);}catch(e){console.error("Error:",e);}}guardarDatos();render();toast(`✅ Sincronizado`);actualizarContadorPendientes();await cargarDesdeFirebase();render();}catch(e){console.error("Error:",e);}finally{syncInProgress=false;}}
