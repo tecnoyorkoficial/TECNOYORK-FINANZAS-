@@ -52,6 +52,10 @@ function generarReciboOrdenPDF(id) {
             ${orden.imei ? `<div style="font-size:12px;margin-bottom:4px;"><b>IMEI:</b> ${orden.imei}</div>` : ''}
             <div style="font-size:12px;margin-bottom:4px;"><b>Problema reportado:</b> ${orden.problema}</div>
             ${orden.observaciones ? `<div style="font-size:12px;color:#555;"><b>Observaciones:</b> ${orden.observaciones}</div>` : ''}
+            ${Object.entries(orden.camposExtra || {}).filter(([k,v])=>v).map(([k,v]) => {
+  const campo = (configNegocio.camposOrdenExtra||[]).find(c=>c.id===k);
+  return campo ? `<div style="font-size:12px;margin-bottom:4px;"><b>${campo.label}:</b> ${v}</div>` : '';
+}).join('')}
           </div>
         </div>
   

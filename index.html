@@ -9,7 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 
         <script type="module">
           import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
@@ -46,14 +45,6 @@
   if (window.onUserChanged) {
     window.onUserChanged(user);
     window._pendingUser = undefined;
-  }
-  if (user) {
-    window.suscribirOneSignal(user);
-  } else {
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    window.OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.logout();
-    });
   }
 });
   //const messaging = getMessaging(app);
@@ -363,6 +354,9 @@
   <input type="text" id="bizIVAGeneral" placeholder="19" style="margin-bottom:8px;">
   <label>Términos y condiciones (pie de cotización)</label>
   <textarea id="bizTerminos" rows="3"style="width:100%;border-radius:12px;padding:10px;background:var(--inputBg);color:var(--inputText);border:1px solid var(--inputBorder);font-family:inherit;font-size:12px;resize:vertical;" placeholder="Ej: Pago contra entrega. Validez: 15 días."></textarea>
+  <label style="margin-top:12px;">Campos adicionales para Órdenes de Trabajo</label>
+<div id="listaCamposOrdenExtra" style="margin-bottom:8px;"></div>
+<button class="secondary" onclick="agregarCampoOrdenExtra()">➕ Agregar campo</button>
             <label>Color de cotizaciones y facturas</label>
   <div class="grid4" style="margin-bottom:10px">
     <div class="tema-preview" id="colorDocVerde" style="background:linear-gradient(135deg,#22c55e,#16a34a)" onclick="aplicarColorDocumentos('#22c55e')">🟢<br>Verde</div>
@@ -572,6 +566,7 @@
           <div><label>Clave/Patrón</label><input type="text" id="ordenClave" placeholder="Opcional"></div>
           <div><label>IMEI</label><input type="text" id="ordenIMEI" placeholder="Opcional"></div>
         </div>
+        <div id="camposOrdenExtraContainer"></div>
         <label>Observaciones</label>
         <textarea id="ordenObservaciones" rows="2" style="width:100%;border-radius:12px;padding:10px;background:var(--inputBg);color:var(--inputText);border:1px solid var(--inputBorder);font-family:inherit;font-size:12px;resize:vertical;" placeholder="Notas adicionales..."></textarea>
         <label>Buscar producto del catálogo (opcional)</label>

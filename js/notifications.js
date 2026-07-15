@@ -1,43 +1,10 @@
 // js/notifications.js — OneSignal push + notificaciones internas de la app
 
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "d983fb39-f003-48e5-82f9-2cc0aeaf4f04",
-      serviceWorkerParam: { scope: "/TECNOYORK-FINANZAS-/" },
-      serviceWorkerPath: "sw.js"
-    });
-  });
-  
-  window.suscribirOneSignal = function(user) {
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    window.OneSignalDeferred.push(async function(OneSignal) {
-      try {
-        await OneSignal.login(user.uid);
-        if (user.email) {
-          OneSignal.User.addEmail(user.email);
-        }
-        const permiso = await OneSignal.Notifications.permission;
-        if (!permiso) {
-          await OneSignal.Notifications.requestPermission();
-        }
-      } catch (e) {
-        console.error('Error suscribiendo a OneSignal:', e);
-      }
-    });
-  };
-
 function onUserChanged(user){
         if (user) {
   localStorage.setItem("uid", user.uid);
   window.currentUser = user;
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  window.OneSignalDeferred.push(async function(OneSignal) {
-    try {
-      await OneSignal.login(user.uid);
-      await OneSignal.Notifications.requestPermission();
-    } catch (e) { console.error("OneSignal:", e); }
-  });
+  
           const loginScr=$("loginScreen");
           const appCont=$("appContent");
           const overlay=$("successOverlay");
@@ -99,24 +66,7 @@ async function cargarNotificaciones(){
     generarNotificacionesSiCorresponde();
     actualizarBadgeNotif();
   }
-async function enviarPushNotificacion(titulo, mensaje) {
-  try {
-    await fetch("https://api.onesignal.com/notifications?c=push", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Key os_v2_app_3gb7wopqaneolaxzftak5l2paqq4tvac7kie4sfxxksvkm2zoogzswxmxsxyxy2ebhivfej6veew36odum5f43i2xpviv43i2dwm4sq"
-      },
-      body: JSON.stringify({
-        app_id: "d983fb39-f003-48e5-82f9-2cc0aeaf4f04",
-        target_channel: "push",
-        included_segments: ["Subscribed Users"],
-        headings: { en: titulo },
-        contents: { en: mensaje }
-      })
-    });
-  } catch (e) { console.error("Error enviando push:", e); }
-}
+
 function agregarNotificacion(tipo, titulo, mensaje, refId, ctx) {
   let n = getNotificaciones();
   if (refId && n.some(x => x.refId === refId)) return;
