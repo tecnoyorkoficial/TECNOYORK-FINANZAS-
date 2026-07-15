@@ -1,6 +1,6 @@
 importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
 
-const CACHE_NAME = 'TY Gestion 2.0.1';
+const CACHE_NAME = 'TY FINANZAS 2.0.1';
 const urlsToCache = [
   '/TECNOYORK-FINANZAS-/',
   '/TECNOYORK-FINANZAS-/index.html',
