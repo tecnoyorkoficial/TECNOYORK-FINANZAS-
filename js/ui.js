@@ -485,7 +485,7 @@ function renderListaOrdenes() {
   <button class="small-btn" onclick="verHistorialOrden('${o.id}')" style="background:rgba(139,92,246,.15);color:#a78bfa;">📋 Log</button>
             <button class="small-btn success-btn" onclick="generarReciboOrdenPDF('${o.id}')">📄 Recibo</button>
             ${siguienteEstado ? `<button class="small-btn warn-btn" onclick="cambiarEstadoOrden('${o.id}','${siguienteEstado}')">➡️ ${ESTADOS_ORDEN[siguienteEstado].label}</button>` : ''}
-            ${o.facturaId ? `<button class="small-btn" style="background:rgba(34,197,94,.15);color:var(--ok);" onclick="switchQuotesSubTab('facturas',null);document.querySelectorAll('.tab-mini')[1]?.click();">🧾 Ver factura</button>` : ''}
+            ${(o.facturaId && !esTecnico()) ? `<button class="small-btn" style="background:rgba(34,197,94,.15);color:var(--ok);" onclick="switchQuotesSubTab('facturas',null);document.querySelectorAll('.tab-mini')[1]?.click();">🧾 Ver factura</button>` : ''}
   ${o.estado === "entregado" ? `<button class="small-btn" style="background:rgba(34,197,94,.15);color:var(--ok);" onclick="reclamarGarantia('${o.id}')">🛡️ Garantía</button>` : '' }
   <button class="small-btn" onclick="enviarWhatsAppOrden('${o.id}')" style="background:rgba(34,197,94,.15);color:#25d366;">📲 WA</button>
   <button class="small-btn" onclick="eliminarOrden('${o.id}')" style="background:rgba(239,68,68,.15);color:var(--bad);">🗑️</button> </div> </div>
@@ -2572,8 +2572,8 @@ async function importarCatalogoTecnoYork() {
     return;
   }
   if (!confirm("¿Importar " + CATALOGO_TECNOYORK.length + " productos de TecnoYork? Los existentes se conservarán.")) return;
-    const btn = document.getElementById("btnImportarTY");
-    if (btn) { btn.disabled = true; btn.textContent = "⏳ Importando..."; }
+    const btns = [document.getElementById("btnImportarTY"), document.getElementById("btnImportarTYInv")].filter(Boolean);
+btns.forEach(b => { b.disabled = true; b.textContent = "⏳ Importando..."; });
     try {
       const noTY = catalogo.filter(p => !p.id.startsWith("prod_tecnoyork_"));
       catalogo = [...noTY, ...CATALOGO_TECNOYORK];
@@ -2584,7 +2584,7 @@ async function importarCatalogoTecnoYork() {
       toast("❌ Error: " + e.message);
       console.error(e);
     }
-    if (btn) { btn.disabled = false; btn.textContent = "📦 Importar Catálogo TecnoYork"; }
+    btns.forEach(b => { b.disabled = false; b.textContent = "📦 Importar Catálogo TecnoYork (578 productos)"; });
   }
 function buscarProdEnOrden(q) {
     const lista = document.getElementById("listaProdOrden");
