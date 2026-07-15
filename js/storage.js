@@ -703,7 +703,7 @@ async function guardarCuentas(ctx) {
           return;
         }
       
-        const uidVal = window.auth.currentUser.uid;
+        const uidVal = negocioId || window.auth.currentUser.uid;
         try {
           const docRef = window.fbDoc(window.db, "usuarios_cuentas", uidVal + "_" + contextoReal);
           await window.fbSetDoc(docRef, {
