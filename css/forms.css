@@ -1,0 +1,50 @@
+/* css/forms.css — inputs, selects, botones, modales, formulario de login */
+          input,select,button{width:100%;border:none;outline:none;border-radius:12px;font-family:inherit;font-size:14px}
+          input,select{padding:12px;background:var(--inputBg);color:var(--inputText);font-weight:500;margin-bottom:8px;border:1px solid var(--inputBorder)}
+          input::placeholder{color:var(--muted);opacity:0.7}
+          select option{background:var(--bg2);color:var(--text)}
+.login-box{animation:fadeInUp .55s cubic-bezier(.22,1,.36,1) both}
+.login-logo img{animation:float 3.5s ease-in-out infinite}
+.login-logo h1{animation:fadeInDown .5s .15s both}
+.login-logo p{animation:fadeInDown .5s .25s both}
+.login-tabs{animation:fadeInUp .5s .2s both}
+.login-input-wrap{animation:fadeInUp .45s both}
+.login-input-wrap:nth-child(1){animation-delay:.3s}
+.login-input-wrap:nth-child(2){animation-delay:.38s}
+.login-input-wrap:nth-child(3){animation-delay:.46s}
+.login-btn-main{animation:fadeInUp .45s .5s both;transition:transform .15s,box-shadow .15s,background .2s}
+.login-btn-main:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(59,130,246,.4)}
+.login-btn-main:not(:disabled):active{transform:scale(.97)}
+.login-btn-main.loading{background:linear-gradient(90deg,#3b82f6,#7c3aed,#3b82f6);background-size:200%;animation:shimmer 1.2s linear infinite!important}
+.login-input-wrap input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.18);transition:border-color .2s,box-shadow .2s}
+.login-btn-main.pulsing{animation:pulse2 1s ease-out!important}#loginScreen.oculto{display:none !important}
+          .login-box{width:100%;max-width:380px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:28px 24px}
+          .login-logo{text-align:center;margin-bottom:24px}
+          .login-logo span{font-size:42px;display:block;margin-bottom:6px}
+          .login-logo h1{font-size:20px;font-weight:800;color:#fff}
+          .login-logo p{font-size:12px;color:#94a3b8;margin-top:4px}
+          .login-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px;margin-bottom:16px}
+          .login-tab{padding:10px;text-align:center;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;color:#94a3b8;border:none;background:transparent;width:100%;transition:.2s}
+          .login-tab.active{background:rgba(59,130,246,.25);color:#fff}
+          .login-input-wrap{margin-bottom:12px}
+          .login-input-wrap label{display:block;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:5px}
+          .login-input-wrap input{padding:12px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:12px;color:#fff;font-size:14px;width:100%}
+          .login-input-wrap input::placeholder{color:#64748b}
+          .login-btn-main{width:100%;padding:13px;border-radius:12px;font-size:14px;font-weight:800;border:none;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;margin-top:4px;cursor:pointer;transition:.2s}
+          .login-btn-main:hover{opacity:.9}
+          .login-btn-main:disabled{opacity:.6;cursor:not-allowed}
+          .login-error{background:rgba(239,68,68,.12);color:#ef4444;border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;margin-bottom:10px;display:none}
+          .login-error.visible{display:block}
+          .form-section{display:none}
+          .form-section.active{display:block}
+          .password-wrapper input{flex:1;padding-right:45px;margin-bottom:0}
+          .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;padding:20px}
+          .modal-overlay.open{display:flex}
+          .modal{background:var(--modalBg);border:1px solid var(--line);border-radius:20px;padding:20px;max-width:400px;width:100%;max-height:85vh;overflow-y:auto;color:var(--text)}
+          .modal h3{font-size:16px;font-weight:800;margin-bottom:8px}
+          .modal p{color:var(--muted);margin-bottom:12px}
+          .modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+          .toggle-switch input{opacity:0;width:0;height:0;margin:0}
+          input:checked+.toggle-slider{background:linear-gradient(135deg,#3b82f6,#7c3aed)}
+          input:checked+.toggle-slider:before{transform:translateX(20px)}
+          label{color:var(--muted);font-size:11px;font-weight:600;display:block;margin-bottom:4px}
