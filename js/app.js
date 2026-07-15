@@ -232,7 +232,19 @@ function registrarMovimientoStock(productoId, tipo, cantidad, motivo, refId) {
   if (tipo === "entrada") prod.stock = (prod.stock || 0) + cant;
   else if (tipo === "salida") prod.stock = Math.max(0, (prod.stock || 0) - cant);
   prod.actualizadoEn = new Date().toISOString();
+  movimientosStock.unshift({
+    id: "movstock_" + Date.now() + "_" + Math.random().toString(36).slice(2,5),
+    productoId: productoId,
+    productoNombre: prod.nombre,
+    tipo: tipo,
+    cantidad: cant,
+    motivo: motivo,
+    refId: refId || null,
+    fecha: fechaHoyColombia(),
+    createdAt: new Date().toISOString()
+  });
   guardarCatalogoNegocio();
+  guardarInventarioNegocio();
   return true;
 }
 window.registrarMovimientoStock = registrarMovimientoStock;
