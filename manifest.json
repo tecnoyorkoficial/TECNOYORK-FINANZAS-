@@ -1,9 +1,9 @@
 {
-  "name": "TY Gestión",
-  "short_name": "TY Gestión",
+  "name": "TY Finanzas",
+  "short_name": "TY Finanzas",
   "description": "Tu gestor financiero inteligente con IA. Controla tus finanzas personales y de negocio, recibe notificaciones, y mantén tus cuentas siempre organizadas.",
-  "start_url": "/PRESUPUESTO-2.0/",
-  "scope": "/PRESUPUESTO-2.0/",
+  "start_url": "/TECNOYORK-FINANZAS-/",
+  "scope": "/TECNOYORK-FINANZAS-/",
   "display": "standalone",
   "theme_color": "#0f172a",
   "background_color": "#0a0f1a",
