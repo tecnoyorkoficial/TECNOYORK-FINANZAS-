@@ -1676,42 +1676,50 @@ function poblarTraspaso(){const so=$("traspasoOrigen"),sd=$("traspasoDestino"),d
 function actualizarNavNegocio() {
   const nav = document.getElementById("mainNav");
   if (!nav) return;
-  
-  // Detectar qué tab está activo ANTES de reconstruir el nav
   const tabActiva = document.querySelector(".tab.active")?.id?.replace("tab-", "") || "home";
-  
-  // Mapa de tab → índice de botón en cada contexto
   const idxNegocio = { home: 0, dashboard: 1, goals: 2, list: 3, quotes: 4, inventario: 5, settings: 6 };
   const idxPersonal = { home: 0, dashboard: 1, goals: 2, list: 3, settings: 4 };
   
   if (contexto === "negocio") {
-  if (esTecnico()) {
-  // Técnico: órdenes de trabajo, catálogo (lectura) y configuración
-  nav.style.gridTemplateColumns = "repeat(3,1fr)";
-  nav.innerHTML = `
+    if (esTecnico()) {
+      nav.style.gridTemplateColumns = "repeat(3,1fr)";
+      nav.innerHTML = `
         <button onclick="goTab('quotes',this)">🔧</button>
         <button onclick="goTab('inventario',this)">📦</button>
         <button onclick="goTab('settings',this)">⚙️</button>
       `;
-    // Marcar botón activo según tab actual
-const btns = nav.querySelectorAll("button");
-if (tabActiva === "settings") {
-  if (btns[2]) btns[2].classList.add("active");
-} else if (tabActiva === "inventario") {
-  if (btns[1]) btns[1].classList.add("active");
-  setTimeout(() => switchInvSubTab("catalogo", document.querySelector("#invSubTabs .tab-mini")), 100);
-} else {
-  // Por defecto: ir a órdenes
-  if (btns[0]) btns[0].classList.add("active");
-  goTab("quotes", btns[0]);
-  setTimeout(() => {
-    const btnOrd = document.getElementById("subtabBtnOrdenes");
-    if (btnOrd) switchQuotesSubTab("ordenes", btnOrd);
-  }, 100);
-}
-  } else {
-    nav.style.gridTemplateColumns = "repeat(7,1fr)";
-    nav.innerHTML = `
+      const btns = nav.querySelectorAll("button");
+      if (tabActiva === "settings") {
+        if (btns[2]) btns[2].classList.add("active");
+      } else if (tabActiva === "inventario") {
+        if (btns[1]) btns[1].classList.add("active");
+        setTimeout(() => switchInvSubTab("catalogo", document.querySelector("#invSubTabs .tab-mini")), 100);
+      } else {
+        if (btns[0]) btns[0].classList.add("active");
+        goTab("quotes", btns[0]);
+        setTimeout(() => {
+          const btnOrd = document.getElementById("subtabBtnOrdenes");
+          if (btnOrd) switchQuotesSubTab("ordenes", btnOrd);
+        }, 100);
+      }
+    } else if (esGerente()) {
+      nav.style.gridTemplateColumns = "repeat(3,1fr)";
+      nav.innerHTML = `
+        <button onclick="goTab('list',this)">📋</button>
+        <button onclick="goTab('quotes',this)">📄</button>
+        <button onclick="goTab('settings',this)">⚙️</button>
+      `;
+      const accesos = document.getElementById("cardNegocioAccesos");
+      if (accesos) accesos.style.display = "block";
+      const config = document.getElementById("cardConfigNegocio");
+      if (config) config.style.display = "block";
+      const idxNegocioGerente = { home: 0, goals: 0, dashboard: 0, list: 0, quotes: 1, inventario: 0, settings: 2 };
+      const idx = idxNegocioGerente[tabActiva] ?? 0;
+      const btns = nav.querySelectorAll("button");
+      if (btns[idx]) btns[idx].classList.add("active");
+    } else {
+      nav.style.gridTemplateColumns = "repeat(7,1fr)";
+      nav.innerHTML = `
         <button onclick="goTab('home',this)">🏠</button>
         <button onclick="goTab('dashboard',this)">📊</button>
         <button onclick="goTab('goals',this)">🎯</button>
@@ -1720,16 +1728,14 @@ if (tabActiva === "settings") {
         <button onclick="goTab('inventario',this)">📦</button>
         <button onclick="goTab('settings',this)">⚙️</button>
       `;
-    const accesos = document.getElementById("cardNegocioAccesos");
-    if (accesos) accesos.style.display = "block";
-    const config = document.getElementById("cardConfigNegocio");
-    if (config) config.style.display = "block";
-    // Restaurar botón activo
-    const idx = idxNegocio[tabActiva] ?? 0;
-    const btns = nav.querySelectorAll("button");
-    if (btns[idx]) btns[idx].classList.add("active");
-  }
-    
+      const accesos = document.getElementById("cardNegocioAccesos");
+      if (accesos) accesos.style.display = "block";
+      const config = document.getElementById("cardConfigNegocio");
+      if (config) config.style.display = esAdmin() ? "block" : "none";
+      const idx = idxNegocio[tabActiva] ?? 0;
+      const btns = nav.querySelectorAll("button");
+      if (btns[idx]) btns[idx].classList.add("active");
+    }
   } else {
     nav.style.gridTemplateColumns = "repeat(5,1fr)";
     nav.innerHTML = `
@@ -1743,9 +1749,6 @@ if (tabActiva === "settings") {
     if (accesos) accesos.style.display = "none";
     const config = document.getElementById("cardConfigNegocio");
     if (config) config.style.display = "none";
-    
-    // Restaurar botón activo
-    // Si estabas en quotes o inventario (solo negocio), ir a home
     const tabEnPersonal = (tabActiva === "quotes" || tabActiva === "inventario") ? "home" : tabActiva;
     const idx = idxPersonal[tabEnPersonal] ?? 0;
     const btns = nav.querySelectorAll("button");
@@ -1815,7 +1818,8 @@ async function addCuenta() {
     render();
     renderCuentasAdmin();
   }
-function goTab(tab,btn){document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));const targetTab=document.getElementById("tab-"+tab);if(targetTab)targetTab.classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));if(btn)btn.classList.add("active");if(tab==="list"){renderHistorial();renderLista();}if(tab==="settings"){setTimeout(()=>{renderCuentasAdmin();renderCatsAdmin();renderHistorialAdmin();cargarConfigNegocioUI();},100);}if(tab==="dashboard"){setTimeout(()=>{renderCharts();renderInversiones();renderPrestamos();if(contexto==="negocio")renderDashboardNegocio();},400);}if(tab==="goals"){renderBudgets();renderRecList();}if(tab==="quotes"){renderListaCotizaciones();}if(tab==="inventario"){const _subInv=esTecnico()?"catalogo":invSubTabActual;switchInvSubTab(_subInv,document.querySelector(`#invSubTabs .tab-mini:nth-child(${_subInv==="catalogo"?1:_subInv==="proveedores"?2:3})`));}if(false){switchInvSubTab(invSubTabActual,document.querySelector(`#invSubTabs .tab-mini:nth-child(${invSubTabActual==="catalogo"?1:invSubTabActual==="proveedores"?2:3})`));}}
+function goTab(tab,btn){if((tab==="dashboard"||tab==="goals"||tab==="inventario"||tab==="home")&&esGerente()){tab="list";btn=document.querySelector(".nav button");}document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));const targetTab=document.getElementById("tab-"+tab);if(targetTab)targetTab.classList.add("active");document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));if(btn)btn.classList.add("active");if(tab==="list"){renderHistorial();renderLista();}if(tab==="settings"){setTimeout(()=>{renderCuentasAdmin();renderCatsAdmin();renderHistorialAdmin();cargarConfigNegocioUI();},100);}if(tab==="dashboard"){setTimeout(()=>{renderCharts();renderInversiones();renderPrestamos();if(contexto==="negocio")renderDashboardNegocio();},400);}if(tab==="goals"){renderBudgets();renderRecList();}if(tab==="quotes"){renderListaCotizaciones();}if(tab==="inventario"){const _subInv=esTecnico()?"catalogo":invSubTabActual;switchInvSubTab(_subInv,document.querySelector(`#invSubTabs .tab-mini:nth-child(${_subInv==="catalogo"?1:_subInv==="proveedores"?2:3})`));}if(false){switchInvSubTab(invSubTabActual,document.querySelector(`#invSubTabs .tab-mini:nth-child(${invSubTabActual==="catalogo"?1:invSubTabActual==="proveedores"?2:3})`));}}
 function renderCoachPersonal(ing,gas,ah,cats,saldos){
     const coachEl=document.getElementById("coach");
     if(!coachEl){setTimeout(()=>renderCoachPersonal(ing,gas,ah,cats,saldos),100);return;}

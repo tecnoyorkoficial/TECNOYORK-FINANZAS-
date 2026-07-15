@@ -6,7 +6,8 @@ function fechaParaInput(){const a=new Date();return a.getFullYear()+"-"+String(a
 function esAdmin(){return miRol==="admin"}
 function esContabilidad(){return miRol==="contabilidad"||miRol==="admin"}
 function esTecnico(){return miRol==="tecnico"}
-function puedeVerDinero(){return miRol==="admin"||miRol==="contabilidad"}
+function esGerente(){return miRol==="gerente"}
+function puedeVerDinero(){return miRol==="admin"||miRol==="contabilidad"||miRol==="gerente"}
 function puedeVerModoPersonal(){return miRol==="admin"}
 function money(n){if(hidden)return"••••••";return"$"+Number(n).toLocaleString("es-CO")}
 function parseMonto(s){return Number(String(s).replace(/\./g,"").replace(",","."))||0}
