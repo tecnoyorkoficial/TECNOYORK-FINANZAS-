@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>TECNOYORK GESTION</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+
+        <script type="module">
+          import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, writeBatch, query, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+  //import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-messaging.js";
+          const firebaseConfig = {
+            apiKey: "AIzaSyABzhwIZkis5OykXxDHXVKCaP0k1qKTZcY",
+            authDomain: "banking-pro-8c1a3.firebaseapp.com",
+            projectId: "banking-pro-8c1a3",
+            storageBucket: "banking-pro-8c1a3.firebasestorage.app",
+            messagingSenderId: "480815819152",
+            appId: "1:480815819152:web:80a270dc86504fee1dab15"
+          };
+          const app = initializeApp(firebaseConfig);
+          const db = getFirestore(app); const auth = getAuth(app);
+          window.db = db; window.auth = auth;
+          window.fbCollection = collection; window.fbAddDoc = addDoc;
+          window.fbGetDocs = getDocs; window.fbDeleteDoc = deleteDoc;
+          window.fbDoc = doc; window.fbUpdateDoc = updateDoc;
+          window.fbWriteBatch = writeBatch; window.fbSetDoc = setDoc;
+          window.fbGetDoc = getDoc;
+          window.fbQuery = query;
+          window.fbOnSnapshot = onSnapshot;
+          window.fbRegister = (e,p) => createUserWithEmailAndPassword(auth,e,p);
+          window.fbLogin = (e,p) => signInWithEmailAndPassword(auth,e,p);
+          window.fbLogout = () => signOut(auth);
+          window.fbUpdateProfile = (u,d) => updateProfile(u,d);
+          window.firebaseReady = true;
+          window.fbSendPasswordReset = (email) => sendPasswordResetEmail(auth, email);
+  onAuthStateChanged(auth, (user) => {
+  window._pendingUser = user;
+  if (window.onUserChanged) {
+    window.onUserChanged(user);
+    window._pendingUser = undefined;
+  }
+  if (user) {
+    window.suscribirOneSignal(user);
+  } else {
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    window.OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.logout();
+    });
+  }
+});
+  //const messaging = getMessaging(app);
+  
+  
+        </script>
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/forms.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+      <body>
+      <div id="statusBar" class="online"><span class="status-dot online"></span> En línea <span id="syncBadge" class="sync-badge"></span></div>
+      
+    <div id="loginScreen">
+  <div class="login-box">
+        <!-- LOGO TECNOYORK FINANZAS -->
+        <div class="login-logo" style="text-align:center;margin-bottom:24px;">
+            <img src="assets/img/icon-512.png" alt="TecnoYork Finanzas" 
+                 style="width:90px;height:90px;object-fit:contain;margin-bottom:6px;display:inline-block;border-radius:12px;">
+            <h1 style="font-size:20px;font-weight:800;color:#ffffff;margin:0;">TECNOYORK GESTIÓN 2.0</h1>
+            <p style="font-size:12px;color:#94a3b8;margin:4px 0 0;">Tu gestor financiero inteligente</p>
+        </div>
+
+        <div class="login-tabs">
+            <button class="login-tab active" id="tabLoginBtn">Iniciar sesión</button>
+            <button class="login-tab" id="tabRegisterBtn">Registrarse</button>
+        </div>
+
+        <div id="loginError" class="login-error"></div>
+
+        <div id="formLogin">
+            <div class="login-input-wrap">
+                <label>Correo</label>
+                <input type="email" id="loginEmail" placeholder="tu@correo.com" autocomplete="email">
+            </div>
+            <div class="login-input-wrap">
+                <label>Contraseña</label>
+                <div class="password-wrapper">
+                    <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+                    <button type="button" class="toggle-password" onclick="togglePassword('loginPass', this)">👁️</button>
+                </div>
+            </div>
+            <button class="login-btn-main" id="loginBtn">Entrar →</button>
+            
+            <!-- BOTÓN DE RECUPERAR CONTRASEÑA -->
+            <div style="text-align:center;margin-top:12px;">
+                <button onclick="abrirModalRecuperar()" 
+                        style="background:transparent;border:none;color:#94a3b8;font-size:12px;font-weight:600;cursor:pointer;padding:6px 12px;text-decoration:underline;transition:color 0.3s;"
+                        onmouseover="this.style.color='#3b82f6'" 
+                        onmouseout="this.style.color='#94a3b8'">
+                    🔑 ¿Olvidaste tu contraseña?
+                </button>
+            </div>
+        </div>
+
+        <div id="formRegister" style="display:none">
+            <div class="login-input-wrap">
+                <label>Nombre</label>
+                <input type="text" id="regName" placeholder="Tu nombre" autocomplete="name">
+            </div>
+            <div class="login-input-wrap">
+                <label>Correo</label>
+                <input type="email" id="regEmail" placeholder="tu@correo.com" autocomplete="email">
+            </div>
+            <div class="login-input-wrap">
+                <label>Contraseña (mín. 6)</label>
+                <div class="password-wrapper">
+                    <input type="password" id="regPass" placeholder="••••••••" autocomplete="new-password">
+                    <button type="button" class="toggle-password" onclick="togglePassword('regPass', this)">👁️</button>
+                </div>
+            </div>
+            <button class="login-btn-main" id="registerBtn">Crear cuenta →</button>
+        </div>
+    </div>
+</div>
+<!-- MODAL RECUPERAR CONTRASEÑA -->
+<div id="modalRecuperar" class="modal-overlay" style="display:none;">
+    <div class="modal" style="max-width:380px;">
+        <h3 style="font-size:18px;font-weight:800;color:var(--text);text-align:center;margin-bottom:8px;">🔑 Recuperar contraseña</h3>
+        <p style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Te enviaremos un enlace a tu correo para restablecer tu contraseña.</p>
+        
+        <div style="margin-bottom:12px;">
+            <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;">Correo electrónico</label>
+            <input type="email" id="recuperarEmail" placeholder="tu@correo.com" style="width:100%;padding:12px 14px;background:var(--inputBg);border:1px solid var(--inputBorder);border-radius:12px;color:var(--inputText);font-size:14px;">
+        </div>
+        
+        <div id="recuperarError" style="background:rgba(239,68,68,.12);color:#ef4444;border-radius:10px;padding:8px 10px;font-size:12px;font-weight:600;margin-bottom:10px;display:none;"></div>
+        
+        <div class="modal-btns">
+            <button class="secondary" onclick="cerrarModalRecuperar()">Cancelar</button>
+            <button class="primary" onclick="enviarRecuperacion()" id="btnEnviarRecuperacion">Enviar enlace</button>
+        </div>
+    </div>
+</div>
+     <div id="appHeader" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px;backdrop-filter:blur(10px);">
+  <div style="flex:1;min-width:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <img src="assets/img/tecno-.png" alt="TecnoYork" style="height:50px;max-width:180px;object-fit:contain;object-position:left;mix-blend-mode:screen;filter:brightness(1.8);">
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+        <div class="notif-bell-wrap" onclick="toggleNotifPanel()">
+          🔔
+          <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </div>
+        <div onclick="toggleHide()" style="cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--cardBg);border:1px solid var(--line);font-size:16px;">👁️</div>
+      </div>
+    </div>
+    <div class="small" id="ctxSaldoLabel">Saldo disponible</div>
+    <div class="big" id="saldoTop">$0</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:2px;">Balance: <span id="streakBox" style="font-weight:700;color:var(--ok);">$0</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+      <span class="small" id="syncCount" style="color:var(--muted);font-size:10px;"></span>
+      <div style="font-size:10px;color:var(--muted);" id="headerFecha"></div>
+    </div>
+    <div class="grid4" style="margin-top:8px;">
+  <div class="kpi" style="padding:4px 8px;font-size:10px;">
+    <span> Ingresos</span>
+    <strong id="headerIngresos" style="color:var(--ok);">$0</strong>
+  </div>
+  <div class="kpi" style="padding:4px 8px;font-size:10px;">
+    <span> Gastos</span>
+    <strong id="headerGastos" style="color:var(--bad);">$0</strong>
+  </div>
+  <div class="kpi" style="padding:4px 8px;font-size:10px;">
+    <span> Hoy</span>
+    <strong id="headerHoy" style="color:var(--warn);">$0</strong>
+  </div>
+  <div class="kpi" style="padding:4px 8px;font-size:10px;">
+  <span style="color:var(--muted);">Movs</span>
+  <strong id="headerMovs" style="color:var(--text);">0</strong>
+</div>
+</div>
+  </div>
+</div>
+  </div>
+
+<div class="ctx-wrap">
+  <div class="ctx-btn ctx-active" id="ctxPersonal" onclick="setContexto('personal')">👤 Personal</div>
+  <div class="ctx-btn ctx-biz" id="ctxNegocio" onclick="setContexto('negocio')">🏪 Negocio</div>
+</div>
+
+<!-- TAB HOME -->
+<section class="tab active" id="tab-home">
+        <div class="card"><div class="title">➕ Registrar <span class="ctx-label personal" id="movCtxLabel">Personal</span></div>
+          <div class="mode-tabs"><div class="mode-tab active" onclick="setMode('ingreso',this)">💰 Ingreso</div><div class="mode-tab" onclick="setMode('gasto',this)">💸 Gasto</div><div class="mode-tab" onclick="setMode('transferencia',this)">🔄 Mover</div><div class="mode-tab" onclick="setMode('traspaso',this)">🔀 Traspaso</div></div>
+          <input type="date" id="fecha"><div class="form-section active" id="fs-normal"><label>Cuenta</label><select id="cuentaSel"></select><label>Categoría</label><select id="categoria"></select><input type="text" id="descripcion" placeholder="Descripción"><input type="text" id="montoInput" placeholder="Monto ej: 20.000"><input type="text" id="notaInput" placeholder="Nota (opcional)"></div>
+          <div class="form-section" id="fs-transfer"><label>Cuenta origen</label><select id="cuentaOrigen"></select><div style="text-align:center;margin:2px 0">⬇️</div><label>Cuenta destino</label><select id="cuentaDestino"></select><input type="text" id="montoTransfer" placeholder="Monto ej: 50.000"><input type="text" id="descTransfer" placeholder="Descripción"></div>
+          <div class="form-section" id="fs-traspaso"><div class="alert info" style="margin-bottom:8px">Mueve dinero entre Personal ↔ Negocio</div><label>Dirección</label><select id="traspasoDireccion"><option value="p2n">👤 Personal → 🏪 Negocio</option><option value="n2p">🏪 Negocio → 👤 Personal</option></select><label>Cuenta origen</label><select id="traspasoOrigen"></select><div style="text-align:center;margin:2px 0">⬇️</div><label>Cuenta destino</label><select id="traspasoDestino"></select><input type="text" id="montoTrspaso" placeholder="Monto"><input type="text" id="descTrspaso" placeholder="Concepto"></div>
+          <button class="primary" id="saveBtn" onclick="guardar()">💾 Guardar</button>
+          <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🎤 Voz</button>
+          <div class="voice-feedback" id="voiceFeedback"></div>
+        </div>
+        <div class="card" id="cardNegocioAccesos" style="display:none">
+          <div class="title">🏪 Accesos rápidos de negocio</div>
+          <div class="grid2">
+            <button class="secondary" onclick="goTab('quotes')" style="padding:10px;font-size:12px;">📄 Nueva Cotización</button>
+            <button class="secondary" onclick="abrirModalClientes()" style="padding:10px;font-size:12px;">👥 Clientes</button>
+            <button class="secondary" onclick="goTab('inventario')" style="padding:10px;font-size:12px;">📦 Inventario</button>
+            <button class="secondary" onclick="goTab('settings')" style="padding:10px;font-size:12px;">⚙️ Config Negocio</button>
+          </div>
+        </div>
+        <div class="card"><div class="title" id="cuentasTitle">🏦 Mis cuentas</div><div id="cuentasResumen"></div><div class="dist-bar" id="distBar"></div><div class="dist-legend" id="distLegend"></div></div>
+        <div class="card"><div class="title">🎛️ Centro de mando</div><div id="cockpit"></div></div>
+        <div class="card"><div class="title">⭐ Favoritos</div><div class="grid2" id="favList"></div></div>
+        <div class="card"><div class="title" style="margin-bottom:4px">🧠 Coach Financiero AI</div><div id="coach"></div></div>
+      </section>
+      
+      <!-- TAB DASHBOARD -->
+      <section class="tab" id="tab-dashboard">
+        <div class="tabs-mini"><div class="tab-mini active" onclick="switchDashTab('finanzas',this)">📊 Finanzas</div><div class="tab-mini" onclick="switchDashTab('inversiones',this)">📈 Inversiones</div><div class="tab-mini" onclick="switchDashTab('prestamos',this)">💳 Préstamos</div><div class="tab-mini" onclick="switchDashTab('negocio',this)">🏪 Negocio</div></div>
+        <div id="dash-finanzas">
+          <div class="card"><div class="title">🏦 Saldo por cuenta</div><canvas id="chart6"></canvas></div>
+          <div class="card"><div class="title">📊 Gastos por categoría</div><canvas id="chart1"></canvas></div>
+          <div class="card"><div class="title">📈 Ingresos vs Gastos</div><canvas id="chart2"></canvas></div>
+          <div class="card"><div class="title">📉 Tendencia de saldo</div><canvas id="chart3"></canvas></div>
+          <div class="card"><div class="title">📆 Gastos por día</div><canvas id="chart4"></canvas></div>
+          <div class="card"><div class="title">💸 Top gastos</div><canvas id="chart5"></canvas></div>
+          <div class="card"><div class="title">📅 Comparativa de meses</div><div id="compareContent"></div></div>
+        </div>
+        <div id="dash-inversiones" style="display:none">
+          <div class="card"><div class="title">📈 Portafolio</div><div id="inversionesResumen"></div><button class="inversion-btn" style="width:100%;margin-top:8px" onclick="mostrarFormInversion()">➕ Nueva inversión</button>
+            <div id="formInversion" style="display:none;margin-top:8px"><select id="invTipo"><option>CDT</option><option>Acciones</option><option>Cripto</option><option>Finca Raíz</option></select><input type="text" id="invNombre" placeholder="Nombre"><input type="text" id="invMonto" placeholder="Monto invertido"><input type="text" id="invRentabilidad" placeholder="Rentabilidad % (ej: 12.5)"><button class="primary" onclick="agregarInversion()">💾 Guardar</button></div>
+          </div>
+          <div class="card"><div class="title">📊 Distribución</div><canvas id="chartInv"></canvas></div>
+        </div>
+        <div id="dash-prestamos" style="display:none">
+          <div class=""><div class="title">💳 Préstamos</div>
+            <div class="tabs-mini"><div class="tab-mini active" onclick="switchPrestamoTab('todos',this)">Todos</div><div class="tab-mini" onclick="switchPrestamoTab('recibidos',this)">📥 Recibidos</div><div class="tab-mini" onclick="switchPrestamoTab('otorgados',this)">📤 Otorgados</div></div>
+            <div id="prestamosLista"></div><button class="primary" style="margin-top:8px" onclick="mostrarFormPrestamo()">➕ Nuevo préstamo</button>
+            <div id="formPrestamo" style="display:none;margin-top:8px"><label>Tipo</label><select id="prestamoTipo"><option value="recibido">📥 Recibido</option><option value="otorgado">📤 Otorgado</option></select><label>Persona</label><input type="text" id="prestamoPersona" placeholder="Nombre"><label>Monto</label><input type="text" id="prestamoMonto" placeholder="Monto"><label>Cuenta</label><select id="prestamoCuenta"></select><label>Fecha vencimiento</label><input type="date" id="prestamoVencimiento"><label>Nota</label><input type="text" id="prestamoNota" placeholder="Nota opcional"><label>Interés mensual (%)</label><input type="text" id="prestamoInteres" placeholder="0"><button class="primary" onclick="agregarPrestamo()">💾 Guardar</button></div>
+          </div>
+          <div class="card"><div class="title">📊 Resumen</div><div id="prestamosResumen"></div></div>
+        </div>
+        <div id="dash-negocio" style="display:none">
+          <div class="card"><div class="title">📊 KPIs de Negocio</div>
+            <div class="grid2" id="kpiNegocio"></div>
+          </div>
+          <div class="card"><div class="title">📄 Últimas cotizaciones</div><div id="ultimasCotizaciones"></div></div>
+          <div class="card"><div class="title">📈 Ventas por mes</div><canvas id="grafVentasMes" style="max-height:180px"></canvas></div>
+          <div class="card"><div class="title">👥 Top clientes</div><div id="topClientes"></div></div>
+          <div class="card"><div class="title">💰 Por cobrar vs Capital</div><div id="cobrarVsCapital"></div></div>
+          <div class="card"><div class="title">📊 Rentabilidad por categoría</div><div id="rentabilidadCat"></div></div>
+        </div>
+      </section>
+      
+      <!-- TAB METAS -->
+      <section class="tab" id="tab-goals">
+        <div class="card"><div class="title">🎯 Nueva meta <span class="ctx-label personal" id="goalCtxLabel">Personal</span></div><input type="text" id="goalName" placeholder="Ej: Viaje"><input type="number" id="goalValue" placeholder="Monto"><button class="primary" onclick="addGoal()">💾 Guardar</button></div>
+        <div class="card"><div class="title">🚀 Mis metas</div><div id="goalList"></div></div>
+        <div class="card"><div class="title">💰 Presupuestos <span class="ctx-label personal" id="budgetCtxLabel">Personal</span></div><select id="budgetCatSel"></select><input type="text" id="budgetMonto" placeholder="Límite"><button class="primary" onclick="addBudget()">➕ Guardar</button><div id="budgetList" style="margin-top:8px"></div></div>
+        <div class="card"><div class="title">🔁 Recurrentes <span class="ctx-label personal" id="recCtxLabel">Personal</span></div><select id="recCuentaSel"></select><select id="recCatSel"></select><input type="text" id="recDesc" placeholder="Descripción"><input type="text" id="recMonto" placeholder="Monto"><button class="primary" onclick="addRecurrente()">➕ Agregar</button><div id="recList" style="margin-top:8px"></div><button class="warn-btn" style="width:100%;margin-top:8px" onclick="aplicarRecurrentes()">⚡ Aplicar al mes</button></div>
+      </section>
+      
+      <!-- TAB MOVIMIENTOS -->
+      <section class="tab" id="tab-list">
+        <div class="card"><div class="title">📋 Movimientos</div>
+          <div style="position:relative;margin-bottom:8px"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px">🔍</span><input type="text" id="searchInput" placeholder="Buscar..." oninput="renderLista()" style="padding-left:34px;margin-bottom:0"></div>
+          <div class="filter-chips"><div class="filter-chip active" onclick="setFiltro('todos',this)">Todos</div><div class="filter-chip" onclick="setFiltro('ingreso',this)">💰 Ingresos</div><div class="filter-chip" onclick="setFiltro('gasto',this)">💸 Gastos</div><div class="filter-chip" onclick="setFiltro('transferencia',this)">🔄 Transferencias</div><div class="filter-chip" onclick="setFiltro('traspaso',this)">🔀 Traspasos</div></div>
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><select id="filterCuentaSel" onchange="renderLista()" style="margin:0;padding:6px;font-size:11px;flex:1"></select><select id="filterOrden" onchange="renderLista()" style="margin:0;padding:6px;font-size:11px;flex:1"><option value="fecha_desc">Fecha ↓</option><option value="fecha_asc">Fecha ↑</option><option value="monto_desc">Monto ↓</option><option value="monto_asc">Monto ↑</option></select></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="small" id="searchResultCount"></span><button class="small-btn success-btn" onclick="exportarCSV()">📥 CSV</button></div>
+          <div class="list" id="lista"></div>
+        </div>
+        <div class="card" id="historialCard" style="display:none"><div class="title">🗂️ Historial de meses</div><div id="historialLista"></div></div>
+      </section>
+        <!-- NUEVO TAB: COTIZACIONES -->
+        <section class="tab" id="tab-quotes">
+    <div class="card">
+      <div class="tabs-mini" id="quotesSubTabs">
+  <div class="tab-mini active" id="subtabBtnCotizaciones" onclick="switchQuotesSubTab('cotizaciones',this)">📄 Cotizaciones</div>
+  <div class="tab-mini" id="subtabBtnFacturas" onclick="switchQuotesSubTab('facturas',this)">🧾 Facturas</div>
+  <div class="tab-mini" id="subtabBtnOrdenes" onclick="switchQuotesSubTab('ordenes',this)">🔧 Órdenes</div>
+</div>
+      
+      <div id="subtab-cotizaciones">
+        <div class="title">📄 Cotizaciones</div>
+        <div class="tabs-mini">
+          <div class="tab-mini active" onclick="filtrarCotizaciones('todas',this)">Todas</div>
+          <div class="tab-mini" onclick="filtrarCotizaciones('borrador',this)">📝 Borrador</div>
+          <div class="tab-mini" onclick="filtrarCotizaciones('enviada',this)">📤 Enviadas</div>
+          <div class="tab-mini" onclick="filtrarCotizaciones('aprobada',this)">✅ Aprobadas</div>
+        </div>
+        <div style="position:relative;margin-bottom:8px">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px">🔍</span>
+          <input type="text" id="searchCot" placeholder="Buscar cotización..." oninput="renderListaCotizaciones()" style="padding-left:34px;margin-bottom:0">
+        </div>
+        <button class="primary" onclick="abrirNuevaCotizacion()" style="margin-bottom:10px;">➕ Nueva Cotización</button>
+        <div id="listaCotizaciones"></div>
+      </div>
+      
+      <div id="subtab-facturas" style="display:none">
+    <div class="title">🧾 Facturas</div>
+    <div class="tabs-mini">
+      <div class="tab-mini active" onclick="filtrarFacturas('todas',this)">Todas</div>
+      <div class="tab-mini" onclick="filtrarFacturas('pendiente',this)">⏳ Se debe</div>
+      <div class="tab-mini" onclick="filtrarFacturas('pagada',this)">✅ Pagadas</div>
+    </div>
+    <div class="alert info" style="margin-bottom:8px">Las facturas se generan automáticamente al aprobar una cotización.</div>
+    <div id="listaFacturas"></div>
+  </div>
+  
+  <div id="subtab-ordenes" style="display:none">
+    <div class="title">🔧 Órdenes de Trabajo</div>
+    <div class="tabs-mini">
+      <div class="tab-mini active" onclick="filtrarOrdenes('todas',this)">Todas</div>
+      <div class="tab-mini" onclick="filtrarOrdenes('recibido',this)">📥 Recibido</div>
+      <div class="tab-mini" onclick="filtrarOrdenes('diagnostico',this)">🔍 Diagnóstico</div>
+      <div class="tab-mini" onclick="filtrarOrdenes('en_reparacion',this)">🔧 Reparando</div>
+      <div class="tab-mini" onclick="filtrarOrdenes('listo',this)">✅ Listo</div>
+      <div class="tab-mini" onclick="filtrarOrdenes('entregado',this)">📦 Entregado</div>
+    </div>
+    <div style="position:relative;margin-bottom:8px">
+      <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px">🔍</span>
+      <input type="text" id="searchOrden" placeholder="Buscar orden..." oninput="renderListaOrdenes()" style="padding-left:34px;margin-bottom:0">
+    </div>
+    <button class="primary" onclick="abrirNuevaOrden()" style="margin-bottom:10px;">➕ Nueva Orden de Trabajo</button>
+    <div id="listaOrdenes"></div>
+  </div>
+  </div>
+  </section>
+      
+        <!-- TAB SETTINGS -->
+        <section class="tab" id="tab-settings">
+          <div class="card"><div class="title">👤 Mi cuenta</div><div id="userInfoBlock" style="margin-bottom:12px"></div><button class="danger" style="width:100%" onclick="cerrarSesion()">🚪 Cerrar sesión</button></div>
+          
+          <div class="card" id="cardConfigNegocio" style="display:none">
+            <div class="title">🏢 Datos del Negocio</div>
+            <label>Logo del negocio</label>
+            <div class="logo-preview" onclick="document.getElementById('logoUpload').click()">
+              <img id="logoPreviewImg" src="" alt="Logo" style="display:none;">
+              <span id="logoPlaceholder">📷 Subir logo</span>
+            </div>
+            <input type="file" id="logoUpload" accept="image/*" style="display:none" onchange="cargarLogo(event)">
+            <button class="small-btn" onclick="document.getElementById('logoUpload').click()" style="width:100%;margin-bottom:8px;">📁 Seleccionar logo</button>
+            <label>Razón Social</label><input type="text" id="bizRazonSocial" placeholder="Ej: Mi Empresa SAS">
+            <label>NIT</label><input type="text" id="bizNIT" placeholder="Ej: 900.123.456-7">
+            <label>Dirección</label><input type="text" id="bizDireccion" placeholder="Cra 10 #20-30">
+            <label>Teléfono</label><input type="text" id="bizTelefono" placeholder="300 123 4567">
+            <label>Email</label><input type="text" id="bizEmail" placeholder="info@miempresa.com">
+            <label>Nombre del encargado (firma autorizada)</label><input type="text" id="bizEncargado" placeholder="Ej: Jorge Pérez">
+            <label>Modo de IVA en cotizaciones</label>
+  <select id="bizModoIVA" style="margin-bottom:8px;">
+    <option value="producto">Por producto (cada ítem con su % IVA)</option>
+    <option value="total">Al total (un % IVA sobre el subtotal)</option>
+  </select>
+  <label>% IVA general (solo si elegiste "Al total")</label>
+  <input type="text" id="bizIVAGeneral" placeholder="19" style="margin-bottom:8px;">
+  <label>Términos y condiciones (pie de cotización)</label>
+  <textarea id="bizTerminos" rows="3"style="width:100%;border-radius:12px;padding:10px;background:var(--inputBg);color:var(--inputText);border:1px solid var(--inputBorder);font-family:inherit;font-size:12px;resize:vertical;" placeholder="Ej: Pago contra entrega. Validez: 15 días."></textarea>
+            <label>Color de cotizaciones y facturas</label>
+  <div class="grid4" style="margin-bottom:10px">
+    <div class="tema-preview" id="colorDocVerde" style="background:linear-gradient(135deg,#22c55e,#16a34a)" onclick="aplicarColorDocumentos('#22c55e')">🟢<br>Verde</div>
+    <div class="tema-preview" id="colorDocAzul" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)" onclick="aplicarColorDocumentos('#2563eb')">🔵<br>Azul</div>
+    <div class="tema-preview" id="colorDocMorado" style="background:linear-gradient(135deg,#7c3aed,#6d28d9)" onclick="aplicarColorDocumentos('#7c3aed')">🟣<br>Morado</div>
+    <div class="tema-preview" id="colorDocNaranja" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="aplicarColorDocumentos('#f59e0b')">🟠<br>Naranja</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+    <label style="margin:0;flex-shrink:0;">Otro color:</label>
+    <input type="color" id="colorDocPersonalizado" value="#22c55e" style="width:50px;height:36px;padding:2px;cursor:pointer;margin:0;" onchange="aplicarColorDocumentos(this.value)">
+  </div>
+            <button class="primary" onclick="guardarConfigNegocio()" style="margin-top:8px;">💾 Guardar configuración</button>
+  <button id="btnImportarTY" class="secondary" onclick="importarCatalogoTecnoYork()" style="margin-top:8px;background:rgba(34,197,94,.15);color:var(--ok);">📦 Importar Catálogo TecnoYork (578 productos)</button>
+          </div>
+
+          <div class="card" id="cardEquipo" style="display:none">
+  <div class="title">👥 Gestión de Equipo</div>
+  <div class="small" style="margin-bottom:8px;">Crea cuentas para tu equipo. Podrán iniciar sesión con el correo y contraseña que definas aquí.</div>
+  <div id="listaEquipo" style="margin-bottom:10px;"></div>
+  <div style="background:var(--cardBg);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:8px;">
+    <div style="font-weight:700;font-size:13px;margin-bottom:10px;">➕ Crear nueva cuenta</div>
+    <label>Nombre</label>
+    <input type="text" id="nuevoMiembroNombre" placeholder="Ej: Juan Técnico">
+    <label>Correo</label>
+    <input type="email" id="nuevoMiembroEmail" placeholder="correo@ejemplo.com">
+    <label>Contraseña inicial</label>
+    <div class="password-wrapper" style="margin-bottom:8px;">
+      <input type="password" id="nuevoMiembroPass" placeholder="Mínimo 6 caracteres" style="margin-bottom:0;">
+      <button type="button" class="toggle-password" onclick="togglePassword('nuevoMiembroPass',this)">👁️</button>
+    </div>
+    <label>Rol</label>
+    <select id="nuevoMiembroRol">
+      <option value="tecnico">🔧 Técnico (solo órdenes de trabajo)</option>
+      <option value="contabilidad">💰 Contabilidad (facturación y finanzas)</option>
+      <option value="admin">🛡️ Administración (acceso total)</option>
+    </select>
+    <button class="primary" style="margin-top:4px;" onclick="crearCuentaEquipo()">➕ Crear cuenta</button>
+  </div>
+</div>
+      
+          <div class="card"><div class="title">🎨 Personalizar tema</div>
+            <div class="grid4" style="margin-bottom:10px">
+              <div class="tema-preview activo" id="temaDark" style="background:linear-gradient(135deg,#0a0f1a,#1e293b)" onclick="aplicarTema('dark')">🌙<br>Oscuro</div>
+              <div class="tema-preview light-preview" id="temaLight" style="background:linear-gradient(135deg,#f8fafc,#e2e8f0);color:#0f172a" onclick="aplicarTema('light')">☀️<br>Claro</div>
+              <div class="tema-preview" id="temaOcean" style="background:linear-gradient(135deg,#06b6d4,#0891b2)" onclick="aplicarTema('ocean')">🌊<br>Océano</div>
+              <div class="tema-preview" id="temaForest" style="background:linear-gradient(135deg,#22c55e,#16a34a)" onclick="aplicarTema('forest')">🌿<br>Bosque</div>
+              <div class="tema-preview" id="temaSunset" style="background:linear-gradient(135deg,#f59e0b,#d97706)" onclick="aplicarTema('sunset')">🌅<br>Atardecer</div>
+            </div>
+          </div>
+          <div class="card" id="cardNotificaciones"><div class="title">🔔 Notificaciones</div>
+            <div class="notification-settings">
+              <div class="notification-row"><div><div style="font-weight:600;font-size:13px;color:var(--text)">Recordatorio diario</div></div><label class="toggle-switch"><input type="checkbox" id="toggleDiario" onchange="toggleNotiDiaria()"><span class="toggle-slider"></span></label></div>
+              <div class="notification-row"><div><div style="font-weight:600;font-size:13px;color:var(--text)">Hora</div></div><select id="horaRecordatorio" onchange="cambiarHora()" style="width:auto;padding:6px 10px;margin:0"><option value="8">08:00</option><option value="12">12:00</option><option value="17">17:00</option><option value="20" selected>20:00</option><option value="21">21:00</option></select></div>
+            </div>
+            <button class="secondary" style="width:100%;margin-top:8px" onclick="probarNoti()">🔔 Probar</button>
+          </div>
+          
+          <div class="card" id="cardHistorialMeses"><div class="title">📆 Historial de Meses</div>
+            <button class="primary" onclick="verHistorialCompleto()">📅 Ver todos los meses cerrados</button>
+            <div class="small" style="margin-top:4px">Consulta el historial de todos los meses anteriores</div>
+          </div>
+          <div class="card" id="cardAdminHistorial"><div class="title">🗂️ Administrar historial</div>
+            <div id="historialAdminLista"></div>
+          </div>
+          <div class="card" id="cardCuentas"><div class="title">🏦 Cuentas</div><div id="cuentasAdmin"></div>
+<button class="secondary" onclick="restaurarCuentasPredeterminadas()" style="margin-bottom:10px;font-size:11px;background:rgba(59,130,246,.15);color:var(--primary);">🔄 Restaurar cuentas predeterminadas</button>
+<label>Nueva</label><input type="text" id="newCuentaNombre" placeholder="Nombre"><select id="newCuentaIcon"><option>🏦</option><option>📱</option><option>💵</option><option>🐷</option><option>🏪</option></select><button class="primary" onclick="addCuenta()">➕ Agregar</button></div>
+          <div class="card" id="cardCategorias"><div class="title">🏷️ Categorías</div><div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:6px" id="catsAdmin"></div><input type="text" id="newCatIcon" placeholder="Ícono"><input type="text" id="newCatNombre" placeholder="Nombre"><select id="newCatTipo"><option value="ambos">Ambos</option><option value="ingreso">Ingreso</option><option value="gasto">Gasto</option></select><button class="primary" onclick="addCategoria()">➕ Agregar</button></div>
+          <div class="card" id="cardManual"><div class="title">📖 Manual de usuario</div><div class="small" style="margin-bottom:8px;">Guía completa de TECNOYORK GESTIÓN 2.0</div><button class="primary" onclick="descargarManualPDF()">📥 Descargar Manual PDF</button></div>
+          <div class="card" id="cardLimpiar"><div class="title">🧹 Limpiar</div><button class="secondary" onclick="limpiarCache('personal')" style="margin-bottom:6px">🗑️ Personal</button><button class="secondary" onclick="limpiarCache('negocio')">🗑️ Negocio</button></div>
+          <div class="card" id="cardDiagnostico"><div class="title">🔧 Diagnóstico</div><div id="diagContent" style="font-size:11px;color:var(--text)"></div><button class="secondary" onclick="diag()" style="margin-top:6px">🔍 Ejecutar</button></div>
+        </section>
+      
+        <!-- TAB INVENTARIO -->
+        <section class="tab" id="tab-inventario">
+          <div class="card">
+            <div class="tabs-mini" id="invSubTabs">
+              <div class="tab-mini" id="invTabCatalogo" onclick="switchInvSubTab('catalogo',this)">📦 Catálogo</div>
+<div class="tab-mini" id="invTabProveedores" onclick="switchInvSubTab('proveedores',this)">🚚 Proveedores</div><div class="tab-mini" id="invTabCompras" onclick="switchInvSubTab('compras',this)">🧾 Compras</div>
+            </div>
+
+            <div id="invsub-catalogo" style="display:none">
+              <div class="grid3" style="margin-bottom:8px;">
+                <div class="kpi"><span>📦 Productos</span><strong id="invKpiTotal">0</strong></div>
+                <div class="kpi"><span>⚠️ Stock bajo</span><strong id="invKpiBajo" style="color:var(--warn);">0</strong></div>
+                <div class="kpi"><span>💰 Valor inventario</span><strong id="invKpiValor" style="color:var(--ok);">$0</strong></div>
+              </div>
+              <div style="position:relative;margin-bottom:8px;">
+                <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;">🔍</span>
+                <input type="text" id="buscarCatalogoInv" placeholder="Buscar por nombre, código, categoría..." oninput="renderListaCatalogo()" style="padding-left:34px;margin-bottom:0;">
+              </div>
+              <div class="filter-chips" style="margin-top:8px;">
+                <div class="filter-chip active" onclick="setFiltroCatalogo('todos',this)">Todos</div>
+                <div class="filter-chip" onclick="setFiltroCatalogo('bajo',this)">⚠️ Stock bajo</div>
+                <div class="filter-chip" onclick="setFiltroCatalogo('sin',this)">🚫 Sin stock</div>
+              </div>
+              <div class="small" id="catalogoCount" style="margin:6px 0;"></div>
+              <div id="listaCatalogoModal" style="margin-bottom:10px;"></div>
+              <button class="primary" onclick="mostrarFormProducto()" style="margin-bottom:8px;">➕ Nuevo Producto</button>
+              <div id="formProducto" style="display:none;">
+                <input type="text" id="prodCodigo" placeholder="Código/SKU">
+                <input type="text" id="prodNombre" placeholder="Nombre del producto *">
+                <input type="text" id="prodDescripcion" placeholder="Descripción">
+                <input type="text" id="prodPrecio" placeholder="Precio unitario *">
+                <input type="text" id="prodCosto" placeholder="Costo (lo que te cuesta a ti)">
+                <div class="grid2">
+                  <div><label>Stock actual</label><input type="text" id="prodStock" placeholder="0"></div>
+                  <div><label>Stock mínimo (alerta)</label><input type="text" id="prodStockMin" placeholder="0"></div>
+                </div>
+                <label>IVA (%)</label>
+                <select id="prodIVA"><option value="0">0%</option><option value="19" selected>19%</option><option value="5">5%</option></select>
+                <input type="text" id="prodCategoria" placeholder="Categoría (ej: Servicios, Productos)">
+                <button class="primary" onclick="guardarProducto()">💾 Guardar Producto</button>
+                <button class="secondary" onclick="cancelarFormProducto()" style="margin-top:4px;">Cancelar</button>
+              </div>
+              <button id="btnImportarTY" class="secondary" onclick="importarCatalogoTecnoYork()" style="width:100%;margin-top:8px;background:rgba(34,197,94,.15);color:var(--ok);">📦 Importar Catálogo TecnoYork (578 productos)</button>
+              <button class="warn-btn" onclick="mostrarFormAjusteStock()" style="width:100%;margin-top:8px;">⚖️ Ajuste manual de stock</button>
+              <div id="formAjusteStock" style="display:none;background:var(--cardBg);border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px;">
+                <label>Producto</label>
+                <select id="ajusteProductoSel"></select>
+                <label>Tipo de ajuste</label>
+                <select id="ajusteTipo"><option value="entrada">➕ Entrada (sumar)</option><option value="salida">➖ Salida (restar)</option></select>
+                <label>Cantidad</label>
+                <input type="text" id="ajusteCantidad" placeholder="0">
+                <label>Motivo</label>
+                <input type="text" id="ajusteMotivo" placeholder="Ej: Conteo físico, producto dañado...">
+                <button class="primary" onclick="guardarAjusteStock()">💾 Guardar ajuste</button>
+              </div>
+            </div>
+
+            <div id="invsub-proveedores" style="display:none">
+              <div class="title">🚚 Proveedores</div>
+              <div id="listaProveedoresInv" style="margin-bottom:10px;"></div>
+              <button class="primary" onclick="mostrarFormProveedor()" style="margin-bottom:8px;">➕ Nuevo Proveedor</button>
+              <div id="formProveedor" style="display:none;">
+                <input type="text" id="provNombre" placeholder="Nombre *">
+                <input type="text" id="provTelefono" placeholder="Teléfono">
+                <input type="email" id="provEmail" placeholder="Email">
+                <input type="text" id="provNIT" placeholder="NIT">
+                <input type="text" id="provDireccion" placeholder="Dirección">
+                <input type="text" id="provNotas" placeholder="Notas (qué te vende, condiciones, etc)">
+                <button class="primary" onclick="guardarProveedor()">💾 Guardar Proveedor</button>
+                <button class="secondary" onclick="cancelarFormProveedor()" style="margin-top:4px;">Cancelar</button>
+              </div>
+            </div>
+
+            <div id="invsub-compras">
+  <div class="title">🧾 Compras a Proveedores</div>
+  <div class="grid2" style="margin-bottom:8px;">
+                <div class="kpi"><span>💰 Por pagar</span><strong id="comprasKpiPagar" style="color:var(--bad);">$0</strong></div>
+                <div class="kpi"><span>📦 Compras del mes</span><strong id="comprasKpiMes">$0</strong></div>
+              </div>
+              <button class="primary" onclick="abrirNuevaCompra()" style="margin-bottom:10px;width:100%;">➕ Nueva Compra</button>
+              <div class="tabs-mini">
+                <div class="tab-mini active" onclick="filtrarCompras('todas',this)">Todas</div>
+                <div class="tab-mini" onclick="filtrarCompras('pendiente',this)">⏳ Por pagar</div>
+                <div class="tab-mini" onclick="filtrarCompras('pagada',this)">✅ Pagadas</div>
+              </div>
+              <div id="listaComprasInv"></div>
+            </div>
+          </div>
+        </section>
+
+        <nav class="nav" id="mainNav">
+          <button class="active" onclick="goTab('home',this)">🏠</button>
+          <button onclick="goTab('dashboard',this)">📊</button>
+          <button onclick="goTab('goals',this)">🎯</button>
+          <button onclick="goTab('list',this)">📋</button>
+          <button onclick="goTab('settings',this)">⚙️</button>
+        </nav>
+      </div>
+      <!-- MODALES -->
+      <div class="toast" id="toast"></div>
+      <div class="modal-overlay" id="modalCierre"><div class="modal"><h3>🔒 Cerrar mes <span class="ctx-label personal" id="cierreCtxLabel">Personal</span></h3><p>Se archivará todo y se limpiará Firebase.</p><div id="modalResumen" style="margin-bottom:12px"></div><div class="modal-btns"><button class="secondary" onclick="document.getElementById('modalCierre').classList.remove('open')">Cancelar</button><button class="primary" onclick="confirmarCierre()">✔ Confirmar</button></div></div></div>
+      <div class="modal-overlay" id="modalEditar"><div class="modal"><h3>✏️ Editar movimiento</h3><input type="date" id="editFecha"><select id="editCategoria"></select><input type="text" id="editDescripcion" placeholder="Descripción"><input type="text" id="editMonto" placeholder="Monto"><select id="editCuenta"></select><input type="text" id="editNota" placeholder="Nota"><div class="modal-btns"><button class="secondary" onclick="document.getElementById('modalEditar').classList.remove('open')">Cancelar</button><button class="primary" onclick="confirmarEdicion()">✔ Guardar</button></div></div></div>
+      
+      <div class="modal-overlay" id="modalClientes"><div class="modal" style="max-width:500px;"><h3>👥 Gestión de Clientes</h3>
+        <div id="listaClientesModal" style="max-height:300px;overflow-y:auto;margin-bottom:10px;"></div>
+        <button class="primary" onclick="mostrarFormCliente()" style="margin-bottom:8px;">➕ Nuevo Cliente</button>
+        <div id="formCliente" style="display:none;">
+          <input type="text" id="clienteNombre" placeholder="Nombre *">
+          <input type="text" id="clienteEmpresa" placeholder="Empresa">
+          <input type="text" id="clienteNIT" placeholder="NIT">
+          <input type="email" id="clienteEmail" placeholder="Email">
+          <input type="text" id="clienteTelefono" placeholder="Teléfono">
+          <input type="text" id="clienteDireccion" placeholder="Dirección">
+          <button class="primary" onclick="guardarCliente()">💾 Guardar Cliente</button>
+          <button class="secondary" onclick="cancelarFormCliente()" style="margin-top:4px;">Cancelar</button>
+        </div>
+        <button class="secondary" onclick="document.getElementById('modalClientes').classList.remove('open')" style="margin-top:8px;">Cerrar</button>
+      </div></div>
+      <div class="modal-overlay" id="modalOrden"><div class="modal" style="max-width:550px;max-height:90vh;">
+        <h3>🔧 Orden de Trabajo</h3>
+        <label>Número de orden</label>
+        <input type="text" id="ordenNumero" placeholder="OT-2026-001">
+        <label>Cliente *</label>
+        <input type="text" id="ordenClienteNombre" placeholder="Nombre del cliente">
+        <label>Teléfono</label>
+        <input type="text" id="ordenClienteTelefono" placeholder="300 123 4567">
+        <div class="grid2">
+          <div><label>Marca *</label><input type="text" id="ordenMarca" placeholder="Samsung, iPhone..."></div>
+          <div><label>Modelo</label><input type="text" id="ordenModelo" placeholder="A14, 13 Pro..."></div>
+        </div>
+        <label>Problema reportado *</label>
+        <input type="text" id="ordenProblema" placeholder="Pantalla rota, no enciende...">
+        <div class="grid2">
+          <div><label>Clave/Patrón</label><input type="text" id="ordenClave" placeholder="Opcional"></div>
+          <div><label>IMEI</label><input type="text" id="ordenIMEI" placeholder="Opcional"></div>
+        </div>
+        <label>Observaciones</label>
+        <textarea id="ordenObservaciones" rows="2" style="width:100%;border-radius:12px;padding:10px;background:var(--inputBg);color:var(--inputText);border:1px solid var(--inputBorder);font-family:inherit;font-size:12px;resize:vertical;" placeholder="Notas adicionales..."></textarea>
+        <label>Buscar producto del catálogo (opcional)</label>
+  <div style="position:relative;margin-bottom:6px;">
+    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;">🔍</span>
+    <input type="text" id="buscarProdOrden" placeholder="Ej: pantalla Samsung A15..." oninput="buscarProdEnOrden(this.value)" style="padding-left:34px;margin-bottom:0;">
+  </div>
+  <div id="listaProdOrden" style="display:none;max-height:180px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--modalBg);z-index:10;position:relative;"></div>
+  <label>Precio estimado</label>
+  <input type="text" id="ordenPrecioEstimado" placeholder="Ej: 80.000"><label>Días de garantía</label>
+  <input type="text" id="ordenGarantiaDias" placeholder="30">
+  <label>Estado</label>
+  <select id="ordenEstado">
+          <option value="recibido">📥 Recibido</option>
+          <option value="diagnostico">🔍 Diagnóstico</option>
+          <option value="en_reparacion">🔧 En reparación</option>
+          <option value="listo">✅ Listo</option>
+        </select>
+        <label>Fotos del equipo (estado físico, máx. 3)</label>
+  <div id="fotosOrdenPreview" style="display:flex;flex-wrap:wrap;margin-bottom:8px;"></div>
+  <div class="modal-btns">
+<button class="secondary" onclick="cerrarCamaraOrden();document.getElementById('modalOrden').classList.remove('open');fotosOrdenActual=[];ordenEditandoId=null;">Cerrar</button>
+          <button class="primary" onclick="guardarOrden()">💾 Guardar Orden</button>
+        </div>
+      </div></div>
+  
+      <div class="modal-overlay" id="modalEntregaOrden"><div class="modal" style="max-width:380px;">
+        <h3>📦 Entregar equipo</h3>
+        <p class="small">Ingresa el precio final cobrado. Se generará una factura automáticamente.</p>
+        <label>Precio final cobrado</label>
+        <input type="text" id="entregaPrecioFinal" placeholder="Ej: 95.000">
+        <div class="modal-btns">
+          <button class="secondary" onclick="document.getElementById('modalEntregaOrden').classList.remove('open')">Cancelar</button>
+          <button class="primary" onclick="confirmarEntregaOrden()">✔ Confirmar entrega</button>
+        </div>
+      </div></div>
+  
+      
+      
+      <div class="modal-overlay" id="modalCotizacion"><div class="modal" style="max-width:600px;max-height:90vh;">
+        <h3>📄 Nueva Cotización</h3>
+        <label>Cliente *</label>
+  <div style="position:relative;margin-bottom:6px;">
+    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;">🔍</span>
+    <input type="text" id="buscarClienteCot" placeholder="Buscar por nombre, empresa, NIT..."
+      oninput="filtrarClientesChips(this.value)"
+      style="padding-left:34px;margin-bottom:0;">
+  </div>
+  <div id="clienteSeleccionado" style="display:none;padding:8px 12px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:10px;margin-bottom:6px;font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center;">
+    <span id="clienteSelNombre">—</span>
+    <button onclick="deseleccionarCliente()" style="width:auto;padding:2px 8px;font-size:11px;background:rgba(239,68,68,.2);color:var(--bad);border-radius:6px;">✕</button>
+  </div>
+  <div id="listaChipsClientes" style="max-height:180px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;margin-bottom:6px;display:none;"></div>
+  <input type="hidden" id="cotCliente" value="">
+        <button class="small-btn" onclick="toggleFormClienteRapido()" style="width:auto;margin-bottom:8px;font-size:10px;">➕ Nuevo cliente</button>
+
+<div id="formClienteRapido" style="display:none;background:var(--cardBg);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;">
+  <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:6px;">👤 Nuevo cliente rápido</div>
+  <input type="text" id="cliRapidoNombre" placeholder="Nombre *">
+  <input type="text" id="cliRapidoEmpresa" placeholder="Empresa (opcional)">
+  <input type="text" id="cliRapidoNIT" placeholder="NIT (opcional)">
+  <input type="email" id="cliRapidoEmail" placeholder="Email (opcional)">
+  <input type="text" id="cliRapidoTelefono" placeholder="Teléfono (opcional)">
+  <div style="display:flex;gap:6px;">
+    <button class="primary" onclick="guardarClienteRapido()" style="font-size:11px;padding:8px;">💾 Guardar y seleccionar</button>
+    <button class="secondary" onclick="toggleFormClienteRapido()" style="font-size:11px;padding:8px;">Cancelar</button>
+  </div>
+</div>
+        
+        <label>Productos</label>
+        <div id="cotProductosLista" style="margin-bottom:8px;"></div>
+        <button class="small-btn" onclick="agregarProductoCotizacion()" style="width:auto;margin-bottom:8px;font-size:10px;">➕ Agregar producto</button>
+<button class="small-btn" onclick="toggleFormProductoRapido()" style="width:auto;margin-bottom:8px;font-size:10px;background:rgba(139,92,246,.15);color:#a78bfa;">✨ Producto nuevo</button>
+
+<div id="formProductoRapido" style="display:none;background:var(--cardBg);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;">
+  <div style="font-size:11px;font-weight:700;color:#a78bfa;margin-bottom:6px;">📦 Nuevo producto rápido</div>
+  <input type="text" id="prodRapidoNombre" placeholder="Nombre del producto *">
+  <input type="text" id="prodRapidoPrecio" placeholder="Precio unitario *">
+  <input type="text" id="prodRapidoCosto" placeholder="Costo (opcional)">
+  <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+    <label style="margin:0;font-size:11px;white-space:nowrap;">IVA:</label>
+    <select id="prodRapidoIVA" style="margin:0;padding:6px;font-size:11px;">
+      <option value="0">0%</option>
+      <option value="19" selected>19%</option>
+      <option value="5">5%</option>
+    </select>
+    <input type="text" id="prodRapidoCategoria" placeholder="Categoría" style="margin:0;">
+  </div>
+  <div style="display:flex;gap:6px;">
+    <button class="primary" onclick="guardarProductoRapido()" style="font-size:11px;padding:8px;">💾 Guardar y agregar</button>
+    <button class="secondary" onclick="toggleFormProductoRapido()" style="font-size:11px;padding:8px;">Cancelar</button>
+  </div>
+</div>
+        
+        <div style="background:var(--cardBg);padding:10px;border-radius:12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Subtotal:</span><span id="cotSubtotal">$0</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;"><span>IVA:</span><span id="cotIVA">$0</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;"><span>TOTAL:</span><span id="cotTotal">$0</span></div>
+        </div>
+        <label>Número de cotización</label>
+      <input type="text" id="cotNumero" placeholder="Ej: COT-2026-010">
+        <label>Validez</label>
+        <select id="cotValidez"><option>7 días</option><option selected>15 días</option><option>30 días</option></select>
+        <label>Notas adicionales</label>
+        <textarea id="cotNotas" rows="2" style="width:100%;border-radius:12px;padding:10px;background:var(--inputBg);color:var(--inputText);border:1px solid var(--inputBorder);font-family:inherit;font-size:12px;resize:vertical;" placeholder="Notas para el cliente..."></textarea>
+        
+        <div class="modal-btns">
+          <button class="secondary" onclick="document.getElementById('modalCotizacion').classList.remove('open');productosCotActual=[];cotEditandoId=null;">Cerrar</button>
+          <button class="primary" onclick="generarCotizacionPDF()">🖨️ Ver / Guardar PDF</button>
+        </div>
+        <button class="secondary" onclick="guardarCotizacion('borrador')" style="margin-top:6px;">💾 Guardar borrador</button>
+      </div></div>
+      
+      <div class="modal-overlay" id="modalPDF"><div class="modal" style="max-width:750px;max-height:90vh;">
+        <h3>📄 Vista previa</h3>
+        <div id="pdfPreview" style="max-height:55vh;overflow-y:auto;margin-bottom:10px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fff;"></div>
+        <div class="modal-btns">
+          <button class="secondary" onclick="document.getElementById('modalPDF').classList.remove('open')">Cerrar</button>
+          <button class="primary" onclick="descargarPDF()">📥 Descargar PDF</button>
+        </div>
+        <button class="secondary" onclick="compartirTextoPDF()" style="margin-top:6px;width:100%;">📋 Copiar texto / Compartir</button>
+      </div></div>
+      <div class="modal-overlay" id="modalFirma"><div class="modal" style="max-width:420px;">
+    <h3 id="firmaModalTitulo">✍️ Firma</h3>
+    <p class="small">Dibuja la firma dentro del recuadro</p>
+    <canvas id="sigPad" width="360" height="180" style="background:#fff;border-radius:10px;border:1px solid var(--line);width:100%;touch-action:none;"></canvas>
+    <div class="modal-btns">
+      <button class="secondary" onclick="limpiarFirma()">🧹 Limpiar</button>
+      <button class="primary" onclick="guardarFirma()">✔ Guardar firma</button>
+    </div>
+    <button class="secondary" onclick="document.getElementById('modalFirma').classList.remove('open')" style="margin-top:6px;width:100%;">Cancelar</button>
+  </div></div>
+  
+  <div class="modal-overlay" id="modalPagoFactura"><div class="modal" style="max-width:380px;">
+    <h3>💰 Registrar pago</h3>
+    <p class="small">Selecciona la cuenta donde entra el dinero. Esto creará el movimiento de ingreso automáticamente.</p>
+    <label>Cuenta destino</label>
+    <select id="pagoFacturaCuenta"></select>
+    <div class="modal-btns">
+      <button class="secondary" onclick="document.getElementById('modalPagoFactura').classList.remove('open')">Cancelar</button>
+      <button class="primary" onclick="confirmarPagoFactura()">✔ Confirmar pago</button>
+    </div>
+  </div></div>
+
+  <div class="modal-overlay" id="modalCompra"><div class="modal" style="max-width:600px;max-height:90vh;">
+    <h3>🧾 Nueva Compra</h3>
+    <label>Proveedor *</label>
+    <select id="compraProveedorSel"></select>
+    <button class="small-btn" onclick="toggleFormProveedorRapido()" style="width:auto;margin:6px 0 8px;font-size:10px;">➕ Nuevo proveedor</button>
+    <div id="formProveedorRapido" style="display:none;background:var(--cardBg);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;">
+      <input type="text" id="provRapidoNombre" placeholder="Nombre *">
+      <input type="text" id="provRapidoTelefono" placeholder="Teléfono (opcional)">
+      <div style="display:flex;gap:6px;">
+        <button class="primary" onclick="guardarProveedorRapido()" style="font-size:11px;padding:8px;">💾 Guardar y seleccionar</button>
+        <button class="secondary" onclick="toggleFormProveedorRapido()" style="font-size:11px;padding:8px;">Cancelar</button>
+      </div>
+    </div>
+    <label>Productos comprados</label>
+    <div id="compraProductosLista" style="margin-bottom:8px;"></div>
+    <button class="small-btn" onclick="agregarProductoCompra()" style="width:auto;margin-bottom:8px;font-size:10px;">➕ Agregar producto</button>
+    <div style="background:var(--cardBg);padding:10px;border-radius:12px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;"><span>TOTAL COMPRA:</span><span id="compraTotal">$0</span></div>
+    </div>
+    <label>Número de compra</label>
+    <input type="text" id="compraNumero" placeholder="Ej: COMP-2026-001">
+    <div class="modal-btns">
+      <button class="secondary" onclick="document.getElementById('modalCompra').classList.remove('open');productosCompraActual=[];">Cerrar</button>
+      <button class="primary" onclick="guardarCompra()">💾 Guardar Compra</button>
+    </div>
+  </div></div>
+
+  <div class="modal-overlay" id="modalPagoCompra"><div class="modal" style="max-width:380px;">
+    <h3>💰 Pagar compra</h3>
+    <p class="small">Selecciona la cuenta de donde sale el dinero. Esto creará un gasto automáticamente.</p>
+    <label>Cuenta origen</label>
+    <select id="pagoCompraCuenta"></select>
+    <div class="modal-btns">
+      <button class="secondary" onclick="document.getElementById('modalPagoCompra').classList.remove('open')">Cancelar</button>
+      <button class="primary" onclick="confirmarPagoCompra()">✔ Confirmar pago</button>
+    </div>
+  </div></div>
+  
+  <div class="notif-panel" id="notifPanel">
+    <div class="notif-panel-header">
+      <span style="font-weight:800;font-size:13px">🔔 Notificaciones</span>
+      <div style="display:flex;gap:6px">
+        <button class="small-btn" onclick="marcarTodasLeidas()">✓ Leer todas</button>
+        <button class="small-btn" onclick="toggleNotifPanel()">✕</button>
+      </div>
+    </div>
+    <div id="notifList"></div>
+  </div>
+  
+
+  <script src="js/utils.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
