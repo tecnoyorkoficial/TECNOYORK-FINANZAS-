@@ -26,19 +26,19 @@ let inversiones=JSON.parse(localStorage.getItem("inversiones")||"[]"),temaActual
 let prestamos=JSON.parse(localStorage.getItem("prestamos")||"[]"),prestamoFiltro="todos";
 let syncInProgress = false;
 let idsRecienEliminados = new Set();
-let clientes = JSON.parse(localStorage.getItem("biz_clientes")||"[]");
-let catalogo = JSON.parse(localStorage.getItem("biz_catalogo")||"[]");
-let cotizaciones = JSON.parse(localStorage.getItem("biz_cotizaciones")||"[]");
-let configNegocio = JSON.parse(localStorage.getItem("biz_config")||'{"razonSocial":"","nit":"","direccion":"","telefono":"","email":"","terminos":"Pago contra entrega. Validez: 15 días.","logo":"","encargadoNombre":"","camposOrdenExtra":[]}');
+let clientes = JSON.parse(localStorage.getItem(negKey("biz_clientes"))||"[]");
+let catalogo = JSON.parse(localStorage.getItem(negKey("biz_catalogo"))||"[]");
+let cotizaciones = JSON.parse(localStorage.getItem(negKey("biz_cotizaciones"))||"[]");
+let configNegocio = JSON.parse(localStorage.getItem(negKey("biz_config"))||'{"razonSocial":"","nit":"","direccion":"","telefono":"","email":"","terminos":"Pago contra entrega. Validez: 15 días.","logo":"","encargadoNombre":"","camposOrdenExtra":[]}');
 let productosCotActual = [];
 let cotFiltroActual = "todas";
 let cotEditandoId = null;
-let facturas = JSON.parse(localStorage.getItem("biz_facturas") || "[]");
-let ordenes = JSON.parse(localStorage.getItem("biz_ordenes") || "[]");
-let proveedores = JSON.parse(localStorage.getItem("biz_proveedores") || "[]");
-let compras = JSON.parse(localStorage.getItem("biz_compras") || "[]");
-let movimientosStock = JSON.parse(localStorage.getItem("biz_movstock") || "[]");
-let arqueos = JSON.parse(localStorage.getItem("biz_arqueos") || "[]");
+let facturas = JSON.parse(localStorage.getItem(negKey("biz_facturas")) || "[]");
+let ordenes = JSON.parse(localStorage.getItem(negKey("biz_ordenes")) || "[]");
+let proveedores = JSON.parse(localStorage.getItem(negKey("biz_proveedores")) || "[]");
+let compras = JSON.parse(localStorage.getItem(negKey("biz_compras")) || "[]");
+let movimientosStock = JSON.parse(localStorage.getItem(negKey("biz_movstock")) || "[]");
+let arqueos = JSON.parse(localStorage.getItem(negKey("biz_arqueos")) || "[]");
 let ordenFiltroActual = "todas";
 let ordenEditandoId = null;
 let fotosOrdenActual = [];
@@ -50,6 +50,7 @@ let facturaPagandoId = null;
 function uid(){return window.currentUser?.uid||localStorage.getItem("uid")||"guest"}
 function keyFor(b){const s=contexto==="negocio"?"Negocio":"";return uid()+"_"+s+b}
 function keyForCtx(b,c){const s=c==="negocio"?"Negocio":"";return uid()+"_"+s+b}
+function negKey(b){return (typeof negocioId!=="undefined"&&negocioId?negocioId:uid())+"_"+b}
 function toast(m){const t=$("toast");t.innerText=m;t.style.display="block";clearTimeout(t._timeout);t._timeout=setTimeout(()=>t.style.display="none",2400)}
 function labelDay(f){const n=hoyColombia();const t=n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0");if(f===t)return"HOY";return new Date(f+"T00:00:00").toLocaleDateString("es-CO",{day:"numeric",month:"short"})}
 window.guardarInventarioNegocio = guardarInventarioNegocio;
@@ -325,7 +326,7 @@ function hexAClaro(hex, factor = 0.92) {
   }
 function aplicarColorDocumentos(color) {
     configNegocio.colorDocumentos = color;
-    localStorage.setItem("biz_config", JSON.stringify(configNegocio));
+    localStorage.setItem(negKey("biz_config"), JSON.stringify(configNegocio));
     if (window.db && window.auth?.currentUser && navigator.onLine) {
       window.fbSetDoc(window.fbDoc(window.db, "negocio_data", window.auth.currentUser.uid), {
         configNegocio: { colorDocumentos: color }

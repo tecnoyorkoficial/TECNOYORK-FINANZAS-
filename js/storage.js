@@ -59,7 +59,7 @@ async function cargarPerfilUsuario(){
   }
 }
 function guardarCatalogoNegocio() {
-  localStorage.setItem("biz_catalogo", JSON.stringify(catalogo));
+  localStorage.setItem(negKey("biz_catalogo"), JSON.stringify(catalogo));
   
   if (window.db && window.auth?.currentUser && navigator.onLine) {
     const uid = negocioId || window.auth.currentUser.uid;
@@ -71,7 +71,7 @@ function guardarCatalogoNegocio() {
     }
   }
 function guardarOrdenesNegocio() {
-  localStorage.setItem("biz_ordenes", JSON.stringify(ordenes));
+  localStorage.setItem(negKey("biz_ordenes"), JSON.stringify(ordenes));
   
   if (window.db && window.auth?.currentUser && navigator.onLine) {
     const uid = negocioId || window.auth.currentUser.uid;
@@ -84,11 +84,11 @@ function guardarOrdenesNegocio() {
     }
   }
 function guardarInventarioNegocio() {
-    localStorage.setItem("biz_proveedores", JSON.stringify(proveedores));
-    localStorage.setItem("biz_compras", JSON.stringify(compras));
-    localStorage.setItem("biz_arqueos", JSON.stringify(arqueos));
+    localStorage.setItem(negKey("biz_proveedores"), JSON.stringify(proveedores));
+    localStorage.setItem(negKey("biz_compras"), JSON.stringify(compras));
+    localStorage.setItem(negKey("biz_arqueos"), JSON.stringify(arqueos));
     if (movimientosStock.length > 300) movimientosStock = movimientosStock.slice(0, 300);
-    localStorage.setItem("biz_movstock", JSON.stringify(movimientosStock));
+    localStorage.setItem(negKey("biz_movstock"), JSON.stringify(movimientosStock));
 
     if (window.db && window.auth?.currentUser && navigator.onLine) {
   const uid = negocioId || window.auth.currentUser.uid;
@@ -106,10 +106,10 @@ function guardarInventarioNegocio() {
     }
   }
 async function cargarInventarioNegocio() {
-  proveedores = JSON.parse(localStorage.getItem("biz_proveedores") || "[]");
-  compras = JSON.parse(localStorage.getItem("biz_compras") || "[]");
-  arqueos = JSON.parse(localStorage.getItem("biz_arqueos") || "[]");
-  movimientosStock = JSON.parse(localStorage.getItem("biz_movstock") || "[]");
+  proveedores = JSON.parse(localStorage.getItem(negKey("biz_proveedores")) || "[]");
+  compras = JSON.parse(localStorage.getItem(negKey("biz_compras")) || "[]");
+  arqueos = JSON.parse(localStorage.getItem(negKey("biz_arqueos")) || "[]");
+  movimientosStock = JSON.parse(localStorage.getItem(negKey("biz_movstock")) || "[]");
   
   if (window.db && window.auth?.currentUser && navigator.onLine) {
   try {
@@ -120,10 +120,10 @@ async function cargarInventarioNegocio() {
         if (d.compras) compras = d.compras;
         if (d.arqueos) arqueos = d.arqueos;
         if (d.movimientosStock) movimientosStock = d.movimientosStock;
-        localStorage.setItem("biz_proveedores", JSON.stringify(proveedores));
-        localStorage.setItem("biz_compras", JSON.stringify(compras));
-        localStorage.setItem("biz_arqueos", JSON.stringify(arqueos));
-        localStorage.setItem("biz_movstock", JSON.stringify(movimientosStock));
+        localStorage.setItem(negKey("biz_proveedores"), JSON.stringify(proveedores));
+        localStorage.setItem(negKey("biz_compras"), JSON.stringify(compras));
+        localStorage.setItem(negKey("biz_arqueos"), JSON.stringify(arqueos));
+        localStorage.setItem(negKey("biz_movstock"), JSON.stringify(movimientosStock));
       }
     } catch (e) {
       console.error("Error cargando inventario:", e);
@@ -131,7 +131,7 @@ async function cargarInventarioNegocio() {
   }
 }
 async function cargarOrdenesNegocio() {
-    ordenes = JSON.parse(localStorage.getItem("biz_ordenes") || "[]");
+    ordenes = JSON.parse(localStorage.getItem(negKey("biz_ordenes")) || "[]");
     renderListaOrdenes();
   
     if (window.db && window.auth?.currentUser && navigator.onLine) {
@@ -139,7 +139,7 @@ async function cargarOrdenesNegocio() {
     const snap = await window.fbGetDoc(window.fbDoc(window.db, "negocio_ordenes", negocioId || window.auth.currentUser.uid));
         if (snap.exists() && snap.data().ordenes) {
           ordenes = snap.data().ordenes;
-          localStorage.setItem("biz_ordenes", JSON.stringify(ordenes));
+          localStorage.setItem(negKey("biz_ordenes"), JSON.stringify(ordenes));
           renderListaOrdenes();
         }
       } catch (e) {
@@ -149,11 +149,11 @@ async function cargarOrdenesNegocio() {
   }
 async function cargarDatosNegocio() {
     // Cargar localStorage primero
-    clientes = JSON.parse(localStorage.getItem("biz_clientes") || "[]");
-    catalogo = JSON.parse(localStorage.getItem("biz_catalogo") || "[]");
-    cotizaciones = JSON.parse(localStorage.getItem("biz_cotizaciones") || "[]");
-    facturas = JSON.parse(localStorage.getItem("biz_facturas") || "[]");
-    configNegocio = JSON.parse(localStorage.getItem("biz_config") || '{"razonSocial":"","nit":"","direccion":"","telefono":"","email":"","terminos":"Pago contra entrega. Validez: 15 días.","logo":""}');
+    clientes = JSON.parse(localStorage.getItem(negKey("biz_clientes")) || "[]");
+    catalogo = JSON.parse(localStorage.getItem(negKey("biz_catalogo")) || "[]");
+    cotizaciones = JSON.parse(localStorage.getItem(negKey("biz_cotizaciones")) || "[]");
+    facturas = JSON.parse(localStorage.getItem(negKey("biz_facturas")) || "[]");
+    configNegocio = JSON.parse(localStorage.getItem(negKey("biz_config")) || '{"razonSocial":"","nit":"","direccion":"","telefono":"","email":"","terminos":"Pago contra entrega. Validez: 15 días.","logo":""}');
     
     cargarConfigNegocioUI();
     renderListaCatalogo();
@@ -182,27 +182,27 @@ async function cargarDatosNegocio() {
         
         if (d.configNegocio) {
           // ✅ Preservar logo local mientras llega el de Firebase
-          const logoLocal = configNegocio.logo || localStorage.getItem("biz_logo_backup") || "";
+          const logoLocal = configNegocio.logo || localStorage.getItem(negKey("biz_logo_backup")) || "";
           configNegocio = { ...d.configNegocio, logo: logoLocal };
         }
         
-        localStorage.setItem("biz_clientes", JSON.stringify(clientes));
-        localStorage.setItem("biz_cotizaciones", JSON.stringify(cotizaciones));
-        localStorage.setItem("biz_facturas", JSON.stringify(facturas));
+        localStorage.setItem(negKey("biz_clientes"), JSON.stringify(clientes));
+        localStorage.setItem(negKey("biz_cotizaciones"), JSON.stringify(cotizaciones));
+        localStorage.setItem(negKey("biz_facturas"), JSON.stringify(facturas));
       }
       
       if (catSnap.exists() && catSnap.data().catalogo) {
         catalogo = catSnap.data().catalogo;
-        localStorage.setItem("biz_catalogo", JSON.stringify(catalogo));
+        localStorage.setItem(negKey("biz_catalogo"), JSON.stringify(catalogo));
       }
         
         // ✅ Logo desde colección separada — siempre tiene prioridad
         if (logoSnap.exists() && logoSnap.data().logo) {
           configNegocio.logo = logoSnap.data().logo;
-          localStorage.setItem("biz_logo_backup", configNegocio.logo);
+          localStorage.setItem(negKey("biz_logo_backup"), configNegocio.logo);
         }
         
-        localStorage.setItem("biz_config", JSON.stringify(configNegocio));
+        localStorage.setItem(negKey("biz_config"), JSON.stringify(configNegocio));
         cargarConfigNegocioUI();
         renderListaCatalogo();
         renderListaClientes();
@@ -596,7 +596,7 @@ function cargarLogo(event) {
         canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
         const logoComprimido = canvas.toDataURL("image/png");
         configNegocio.logo = logoComprimido;
-  localStorage.setItem("biz_logo_backup", logoComprimido);
+  localStorage.setItem(negKey("biz_logo_backup"), logoComprimido);
   guardarDatosNegocio();
         setTimeout(() => {
           const logoImg = document.getElementById("logoPreviewImg");
@@ -615,7 +615,7 @@ function agregarCampoOrdenExtra() {
   if (!label || !label.trim()) return;
   if (!configNegocio.camposOrdenExtra) configNegocio.camposOrdenExtra = [];
   configNegocio.camposOrdenExtra.push({ id: "campo_" + Date.now(), label: label.trim() });
-  localStorage.setItem("biz_config", JSON.stringify(configNegocio));
+  localStorage.setItem(negKey("biz_config"), JSON.stringify(configNegocio));
   guardarConfigNegocio();
   renderCamposOrdenAdmin();
 }
@@ -653,7 +653,7 @@ function guardarConfigNegocio() {
   configNegocio.ivaGeneral = parseFloat($("bizIVAGeneral").value) || 19;
   configNegocio.logo = logoActual;
     
-    localStorage.setItem("biz_config", JSON.stringify(configNegocio));
+    localStorage.setItem(negKey("biz_config"), JSON.stringify(configNegocio));
   
     // ✅ SOLO guardar configNegocio, NUNCA catalogo ni cotizaciones aquí
     if (window.db && window.auth?.currentUser && navigator.onLine) {

@@ -18,10 +18,10 @@ if (window.db && negocioId) {
 }
 let unsubscribeRealTime = null;
 function guardarDatosNegocio() {
-  localStorage.setItem("biz_clientes", JSON.stringify(clientes));
-  localStorage.setItem("biz_cotizaciones", JSON.stringify(cotizaciones));
-  localStorage.setItem("biz_facturas", JSON.stringify(facturas));
-  localStorage.setItem("biz_config", JSON.stringify(configNegocio));// ⚠️ catalogo ya NO se guarda aquí — usa guardarCatalogoNegocio() para eso
+  localStorage.setItem(negKey("biz_clientes"), JSON.stringify(clientes));
+  localStorage.setItem(negKey("biz_cotizaciones"), JSON.stringify(cotizaciones));
+  localStorage.setItem(negKey("biz_facturas"), JSON.stringify(facturas));
+  localStorage.setItem(negKey("biz_config"), JSON.stringify(configNegocio));// ⚠️ catalogo ya NO se guarda aquí — usa guardarCatalogoNegocio() para eso
   
     if (window.db && window.auth?.currentUser && navigator.onLine) {
   const uid = negocioId || window.auth.currentUser.uid;
@@ -272,21 +272,21 @@ function activarSincronizacionRealTime() {
           if (doc.exists()) {
             if (doc.data().clientes) {
               clientes = doc.data().clientes;
-              localStorage.setItem("biz_clientes", JSON.stringify(clientes));
+              localStorage.setItem(negKey("biz_clientes"), JSON.stringify(clientes));
             }
             if (doc.data().cotizaciones) {
               cotizaciones = doc.data().cotizaciones;
-              localStorage.setItem("biz_cotizaciones", JSON.stringify(cotizaciones));
+              localStorage.setItem(negKey("biz_cotizaciones"), JSON.stringify(cotizaciones));
             }
             if (doc.data().facturas) {
     facturas = doc.data().facturas;
-    localStorage.setItem("biz_facturas", JSON.stringify(facturas));
+    localStorage.setItem(negKey("biz_facturas"), JSON.stringify(facturas));
   }
             if (doc.data().configNegocio) {
     // ✅ Conservar el logo local al recibir actualización de Firebase
-    const logoLocal = configNegocio.logo || localStorage.getItem("biz_logo_backup") || "";
+    const logoLocal = configNegocio.logo || localStorage.getItem(negKey("biz_logo_backup")) || "";
     configNegocio = { ...doc.data().configNegocio, logo: logoLocal };
-    localStorage.setItem("biz_config", JSON.stringify(configNegocio));
+    localStorage.setItem(negKey("biz_config"), JSON.stringify(configNegocio));
     cargarConfigNegocioUI();
   }
             if (contexto === "negocio") {
@@ -303,7 +303,7 @@ function activarSincronizacionRealTime() {
         const unsubscribeCatalogo = window.fbOnSnapshot(catalogoRef, (doc) => {
   if (doc.exists() && doc.data().catalogo) {
     catalogo = doc.data().catalogo;
-    localStorage.setItem("biz_catalogo", JSON.stringify(catalogo));
+    localStorage.setItem(negKey("biz_catalogo"), JSON.stringify(catalogo));
     const formAbierto = document.getElementById("formProducto")?.style.display !== "none";
     if (!formAbierto && invSubTabActual === "catalogo") {
       renderListaCatalogo();
@@ -316,7 +316,7 @@ function activarSincronizacionRealTime() {
         const unsubscribeOrdenes = window.fbOnSnapshot(ordenesRef, (doc) => {
   if (doc.exists() && doc.data().ordenes) {
     ordenes = doc.data().ordenes;
-    localStorage.setItem("biz_ordenes", JSON.stringify(ordenes));
+    localStorage.setItem(negKey("biz_ordenes"), JSON.stringify(ordenes));
     renderListaOrdenes();
   }
 });
@@ -326,10 +326,10 @@ function activarSincronizacionRealTime() {
         const unsubscribeInventario = window.fbOnSnapshot(inventarioRef, (doc) => {
   if (doc.exists()) {
     const d = doc.data();
-    if (d.proveedores) { proveedores = d.proveedores; localStorage.setItem("biz_proveedores", JSON.stringify(proveedores)); }
-    if (d.compras) { compras = d.compras; localStorage.setItem("biz_compras", JSON.stringify(compras)); }
-    if (d.arqueos) { arqueos = d.arqueos; localStorage.setItem("biz_arqueos", JSON.stringify(arqueos)); }
-    if (d.movimientosStock) { movimientosStock = d.movimientosStock; localStorage.setItem("biz_movstock", JSON.stringify(movimientosStock)); }
+    if (d.proveedores) { proveedores = d.proveedores; localStorage.setItem(negKey("biz_proveedores"), JSON.stringify(proveedores)); }
+    if (d.compras) { compras = d.compras; localStorage.setItem(negKey("biz_compras"), JSON.stringify(compras)); }
+    if (d.arqueos) { arqueos = d.arqueos; localStorage.setItem(negKey("biz_arqueos"), JSON.stringify(arqueos)); }
+    if (d.movimientosStock) { movimientosStock = d.movimientosStock; localStorage.setItem(negKey("biz_movstock"), JSON.stringify(movimientosStock)); }
     if (invSubTabActual === "compras" && typeof renderListaCompras === "function") renderListaCompras();
     if (invSubTabActual === "movimientos" && typeof renderListaMovimientosStock === "function") renderListaMovimientosStock();
     actualizarKpisInventario();
@@ -379,12 +379,12 @@ async function cargarTodo() {
   inversiones = JSON.parse(localStorage.getItem("inversiones") || "[]");
   
   // Datos de negocio desde localStorage
-  clientes = JSON.parse(localStorage.getItem("biz_clientes") || "[]");
-  catalogo = JSON.parse(localStorage.getItem("biz_catalogo") || "[]");
-  cotizaciones = JSON.parse(localStorage.getItem("biz_cotizaciones") || "[]");
-  facturas = JSON.parse(localStorage.getItem("biz_facturas") || "[]");
-  ordenes = JSON.parse(localStorage.getItem("biz_ordenes") || "[]");
-  configNegocio = JSON.parse(localStorage.getItem("biz_config") || '{"razonSocial":"","nit":"","direccion":"","telefono":"","email":"","terminos":"Pago contra entrega. Validez: 15 días.","logo":""}');
+  clientes = JSON.parse(localStorage.getItem(negKey("biz_clientes")) || "[]");
+  catalogo = JSON.parse(localStorage.getItem(negKey("biz_catalogo")) || "[]");
+  cotizaciones = JSON.parse(localStorage.getItem(negKey("biz_cotizaciones")) || "[]");
+  facturas = JSON.parse(localStorage.getItem(negKey("biz_facturas")) || "[]");
+  ordenes = JSON.parse(localStorage.getItem(negKey("biz_ordenes")) || "[]");
+  configNegocio = JSON.parse(localStorage.getItem(negKey("biz_config")) || '{"razonSocial":"","nit":"","direccion":"","telefono":"","email":"","terminos":"Pago contra entrega. Validez: 15 días.","logo":""}');
   
   // Renderizar con lo que hay (inmediato)
   poblarSelects();
