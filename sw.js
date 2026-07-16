@@ -1,4 +1,4 @@
-const CACHE_NAME = 'TY FINANZAS 2.0.1';
+const CACHE_NAME = 'TY FINANZAS 2.0.0';
 const urlsToCache = [
   '/TECNOYORK-FINANZAS-/',
   '/TECNOYORK-FINANZAS-/index.html',
