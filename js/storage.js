@@ -594,7 +594,7 @@ function cargarLogo(event) {
         canvas.width  = img.width  * scale;
         canvas.height = img.height * scale;
         canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-        const logoComprimido = canvas.toDataURL("image/jpeg", 0.8);
+        const logoComprimido = canvas.toDataURL("image/png");
         configNegocio.logo = logoComprimido;
   localStorage.setItem("biz_logo_backup", logoComprimido);
   guardarDatosNegocio();
