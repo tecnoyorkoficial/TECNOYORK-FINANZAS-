@@ -22,7 +22,7 @@ function generarReciboOrdenPDF(id) {
       <div style="font-family:Arial,sans-serif;color:#1a1a1a;background:#fff;padding:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;padding:24px 28px 16px;border-bottom:3px solid ${colorBase};">
           <div style="display:flex;align-items:center;gap:16px;">
-            ${configNegocio.logo ? `<img src="${configNegocio.logo}" style="max-width:100px;max-height:70px;object-fit:contain;">` : ''}
+            ${configNegocio.logo ? `<img src="${configNegocio.logo}" style="max-width:150px;max-height:120px;object-fit:contain;">` : ''}
             <div>
               <div style="font-size:20px;font-weight:900;">${configNegocio.razonSocial || 'MI EMPRESA'}</div>
               <div style="font-size:11px;color:#555;margin-top:2px;">${configNegocio.direccion || ''}</div>
@@ -133,7 +133,7 @@ function mostrarVistaPreviaPDF() {
     <!-- HEADER -->
     <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;padding:24px 28px 16px;border-bottom:3px solid ${colorBase};">
       <div style="display:flex;align-items:center;gap:16px;">
-        ${configNegocio.logo ? `<img src="${configNegocio.logo}" style="max-width:100px;max-height:70px;object-fit:contain;">` : ''}
+        ${configNegocio.logo ? `<img src="${configNegocio.logo}" style="max-width:150px;max-height:120px;object-fit:contain;">` : ''}
         <div>
           <div style="font-size:20px;font-weight:900;color:#1a1a1a;">${configNegocio.razonSocial || 'MI EMPRESA'}</div>
           <div style="font-size:11px;color:#555;margin-top:2px;">${configNegocio.direccion || ''}</div>
@@ -432,7 +432,7 @@ function verFacturaPDF(facturaId) {
       <div style="font-family:Arial,sans-serif;color:#1a1a1a;background:#fff;padding:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;padding:24px 28px 16px;border-bottom:3px solid ${colorBase};">
           <div style="display:flex;align-items:center;gap:16px;">
-            ${configNegocio.logo ? `<img src="${configNegocio.logo}" style="max-width:100px;max-height:70px;object-fit:contain;">` : ''}
+            ${configNegocio.logo ? `<img src="${configNegocio.logo}" style="max-width:150px;max-height:120px;object-fit:contain;">` : ''}
             <div>
               <div style="font-size:20px;font-weight:900;">${configNegocio.razonSocial || 'MI EMPRESA'}</div>
               <div style="font-size:11px;color:#555;margin-top:2px;">${configNegocio.direccion || ''}</div>
