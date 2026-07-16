@@ -328,7 +328,7 @@ function aplicarColorDocumentos(color) {
     configNegocio.colorDocumentos = color;
     localStorage.setItem(negKey("biz_config"), JSON.stringify(configNegocio));
     if (window.db && window.auth?.currentUser && navigator.onLine) {
-      window.fbSetDoc(window.fbDoc(window.db, "negocio_data", window.auth.currentUser.uid), {
+      window.fbSetDoc(window.fbDoc(window.db, "negocio_data", negocioId || window.auth.currentUser.uid), {
         configNegocio: { colorDocumentos: color }
       }, { merge: true }).catch(e => console.error(e));
     }

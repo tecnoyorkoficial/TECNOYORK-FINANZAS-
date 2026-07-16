@@ -101,9 +101,10 @@ async function marcarFacturaPendiente(facturaId) {
     if (window.db && window.auth?.currentUser && !idMov.startsWith("local_")) {
       try {
         const colName = "movimientos_negocio";
-        await window.fbDeleteDoc(
-          window.fbDoc(window.db, "users", window.auth.currentUser.uid, colName, idMov)
-        );
+const uidNeg = negocioId || window.auth.currentUser.uid;
+await window.fbDeleteDoc(
+  window.fbDoc(window.db, "users", uidNeg, colName, idMov)
+);
       } catch(e) {
         console.error("Error eliminando movimiento de Firebase:", e);
       }
@@ -138,11 +139,13 @@ function activarSincronizacionRealTime() {
         }
         
         const colNamePersonal = "movimientos_personal";
-        const colNameNegocio = "movimientos_negocio";
-        const userId = negocioId || window.currentUser.uid;
-        
-        // Escuchar cambios en movimientos personales
-  const qPersonal = window.fbQuery(window.fbCollection(window.db, "users", userId, colNamePersonal));
+const colNameNegocio = "movimientos_negocio";
+const userId = negocioId || window.currentUser.uid;
+const uidPersonal = window.currentUser.uid;
+const uidNegocio = negocioId || window.currentUser.uid;
+
+// Escuchar cambios en movimientos personales
+const qPersonal = window.fbQuery(window.fbCollection(window.db, "users", uidPersonal, colNamePersonal));
   const unsubscribePersonal = window.fbOnSnapshot(qPersonal, (snapshot) => {
   const fbData = [];
   snapshot.forEach(doc => { if (!idsRecienEliminados.has(String(doc.id))) fbData.push({ ...doc.data(), ID: doc.id }); });
@@ -169,7 +172,7 @@ function activarSincronizacionRealTime() {
   });
   
   // Escuchar cambios en movimientos de negocio
-  const qNegocio = window.fbQuery(window.fbCollection(window.db, "users", userId, colNameNegocio));
+  const qNegocio = window.fbQuery(window.fbCollection(window.db, "users", uidNegocio, colNameNegocio));
   const unsubscribeNegocio = window.fbOnSnapshot(qNegocio, (snapshot) => {
   const fbData = [];
   snapshot.forEach(doc => { if (!idsRecienEliminados.has(String(doc.id))) fbData.push({ ...doc.data(), ID: doc.id }); });
@@ -351,7 +354,7 @@ function activarSincronizacionRealTime() {
           unsubscribeInventario();
         };
       }
-async function sincronizarPendientes(){if(syncInProgress)return;if(!window.db||!window.auth?.currentUser)return;if(!navigator.onLine)return;syncInProgress=true;try{const cola=await obtenerCola();if(cola.length===0){syncInProgress=false;return;}toast(`🔄 Sincronizando ${cola.length}...`);for(const item of cola){try{const colName=item.contexto==="negocio"?"movimientos_negocio":"movimientos_personal";const ref=await window.fbAddDoc(window.fbCollection(window.db,"users",window.auth.currentUser.uid,colName),item.datos);const datosConId={...item.datos,ID:ref.id};if(item.contexto===contexto){data=data.filter(d=>String(d.ID)!==String(item.idLocal)&&String(d.ID)!==String(ref.id));data.push(datosConId);}else{const otraData=JSON.parse(localStorage.getItem(keyForCtx("dataCache",item.contexto))||"[]");const nuevaOtra=otraData.filter(d=>String(d.ID)!==String(item.idLocal));nuevaOtra.push(datosConId);localStorage.setItem(keyForCtx("dataCache",item.contexto),JSON.stringify(nuevaOtra));}const factAfectada=facturas.find(f=>f.movimientoId===item.idLocal);if(factAfectada){factAfectada.movimientoId=ref.id;guardarDatosNegocio();}await eliminarDeCola(item.id);}catch(e){console.error("Error:",e);}}guardarDatos();render();toast(`✅ Sincronizado`);actualizarContadorPendientes();await cargarDesdeFirebase();render();}catch(e){console.error("Error:",e);}finally{syncInProgress=false;}}
+async function sincronizarPendientes(){if(syncInProgress)return;if(!window.db||!window.auth?.currentUser)return;if(!navigator.onLine)return;syncInProgress=true;try{const cola=await obtenerCola();if(cola.length===0){syncInProgress=false;return;}toast(`🔄 Sincronizando ${cola.length}...`);for(const item of cola){try{const colName=item.contexto==="negocio"?"movimientos_negocio":"movimientos_personal";const uidDestino=item.contexto==="negocio"?(negocioId||window.auth.currentUser.uid):window.auth.currentUser.uid;const ref=await window.fbAddDoc(window.fbCollection(window.db,"users",uidDestino,colName),item.datos);const datosConId={...item.datos,ID:ref.id};if(item.contexto===contexto){data=data.filter(d=>String(d.ID)!==String(item.idLocal)&&String(d.ID)!==String(ref.id));data.push(datosConId);}else{const otraData=JSON.parse(localStorage.getItem(keyForCtx("dataCache",item.contexto))||"[]");const nuevaOtra=otraData.filter(d=>String(d.ID)!==String(item.idLocal));nuevaOtra.push(datosConId);localStorage.setItem(keyForCtx("dataCache",item.contexto),JSON.stringify(nuevaOtra));}const factAfectada=facturas.find(f=>f.movimientoId===item.idLocal);if(factAfectada){factAfectada.movimientoId=ref.id;guardarDatosNegocio();}await eliminarDeCola(item.id);}catch(e){console.error("Error:",e);}}guardarDatos();render();toast(`✅ Sincronizado`);actualizarContadorPendientes();await cargarDesdeFirebase();render();}catch(e){console.error("Error:",e);}finally{syncInProgress=false;}}
 function actualizarStatusBar(){const sb=$("statusBar");if(!sb)return;if(navigator.onLine){sb.className="online";sb.innerHTML='<span class="status-dot online"></span> En línea <span id="syncBadge" class="sync-badge"></span>';actualizarContadorPendientes();sincronizarPendientes();}else{sb.className="offline";sb.innerHTML='<span class="status-dot offline"></span> Offline <span id="syncBadge" class="sync-badge"></span>';actualizarContadorPendientes();}generarNotificacionesSiCorresponde();actualizarBadgeNotif();}
 window.addEventListener("online",()=>{actualizarStatusBar();sincronizarPendientes();cargarDesdeFirebase().then(()=>render());});
 async function cerrarSesion(){if(!confirm("¿Cerrar sesión?"))return;if(unsubscribeRealTime){unsubscribeRealTime();unsubscribeRealTime=null;}await window.fbLogout();}
@@ -459,9 +462,10 @@ async function borrar(id){
   if(window.db && window.auth?.currentUser && !idStr.startsWith("local_")){
     try{
       const colName = ctx === "negocio" ? "movimientos_negocio" : "movimientos_personal";
-      await window.fbDeleteDoc(
-        window.fbDoc(window.db, "users", window.auth.currentUser.uid, colName, idStr)
-      );
+const uidDestino = ctx === "negocio" ? (negocioId || window.auth.currentUser.uid) : window.auth.currentUser.uid;
+await window.fbDeleteDoc(
+  window.fbDoc(window.db, "users", uidDestino, colName, idStr)
+);
     } catch(e){
       console.error("Error eliminando de Firebase:", e);
       toast("⚠️ Eliminado local — error en servidor");
@@ -476,7 +480,7 @@ async function borrar(id){
     }
   }, 3000);
 }
-async function confirmarCierre(){const s=calcSaldos();const ing=data.filter(x=>x.Tipo==="Ingreso").reduce((a,x)=>a+Number(x.Monto||0),0);const gas=data.filter(x=>x.Tipo==="Gasto").reduce((a,x)=>a+Number(x.Monto||0),0);const hoy=hoyColombia();const label=hoy.toLocaleDateString("es-CO",{month:"long",year:"numeric"});const mesKey=hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0");const mesCerrado={id:mesKey,label:label,fecha:fechaHoyColombia(),ing:ing,gas:gas,balance:ing-gas,saldosCierre:{...s},movimientos:[...data],cuentas:cuentas.map(c=>({id:c.id,nombre:c.nombre,icon:c.icon,saldoFinal:s[c.id]||0})),createdAt:Date.now()};historial.unshift(mesCerrado);localStorage.setItem(keyFor("historialMeses"),JSON.stringify(historial));if(window.db&&window.auth?.currentUser){try{const colHistorico="historial_mensual";const historicoRef=window.fbDoc(window.db,"users",window.auth.currentUser.uid,colHistorico,mesKey);await window.fbUpdateDoc(historicoRef,mesCerrado).catch(async()=>{await window.fbAddDoc(window.fbCollection(window.db,"users",window.auth.currentUser.uid,colHistorico),mesCerrado);});}catch(e){console.error("Error guardando en Firebase:",e);}}cuentas=cuentas.map(c=>({...c,saldoInicial:s[c.id]||0}));localStorage.setItem(keyFor("cuentas"),JSON.stringify(cuentas));await guardarCuentas(contexto);await sincronizarPendientes();if(window.db&&window.auth?.currentUser){const colNamePersonal="movimientos_personal";const colNameNegocio="movimientos_negocio";try{const snapPersonal=await window.fbGetDocs(window.fbCollection(window.db,"users",window.auth.currentUser.uid,colNamePersonal));const snapNegocio=await window.fbGetDocs(window.fbCollection(window.db,"users",window.auth.currentUser.uid,colNameNegocio));for(const doc of snapPersonal.docs)await window.fbDeleteDoc(window.fbDoc(window.db,"users",window.auth.currentUser.uid,colNamePersonal,doc.id));for(const doc of snapNegocio.docs)await window.fbDeleteDoc(window.fbDoc(window.db,"users",window.auth.currentUser.uid,colNameNegocio,doc.id));}catch(e){console.error("Error limpiando movimientos:",e);}}data=[];await limpiarCola();localStorage.setItem(keyFor("dataCache"),"[]");guardarDatos();const sc=$("syncCount");if(sc)sc.innerText=0;$("modalCierre").classList.remove("open");render();toast("✔ Mes cerrado: "+label+" - Historial guardado");}
+async function confirmarCierre(){const s=calcSaldos();const ing=data.filter(x=>x.Tipo==="Ingreso").reduce((a,x)=>a+Number(x.Monto||0),0);const gas=data.filter(x=>x.Tipo==="Gasto").reduce((a,x)=>a+Number(x.Monto||0),0);const hoy=hoyColombia();const label=hoy.toLocaleDateString("es-CO",{month:"long",year:"numeric"});const mesKey=hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0");const mesCerrado={id:mesKey,label:label,fecha:fechaHoyColombia(),ing:ing,gas:gas,balance:ing-gas,saldosCierre:{...s},movimientos:[...data],cuentas:cuentas.map(c=>({id:c.id,nombre:c.nombre,icon:c.icon,saldoFinal:s[c.id]||0})),createdAt:Date.now()};historial.unshift(mesCerrado);localStorage.setItem(keyFor("historialMeses"),JSON.stringify(historial));if(window.db&&window.auth?.currentUser){try{const colHistorico="historial_mensual";const historicoRef=window.fbDoc(window.db,"users",window.auth.currentUser.uid,colHistorico,mesKey);await window.fbUpdateDoc(historicoRef,mesCerrado).catch(async()=>{await window.fbAddDoc(window.fbCollection(window.db,"users",window.auth.currentUser.uid,colHistorico),mesCerrado);});}catch(e){console.error("Error guardando en Firebase:",e);}}cuentas=cuentas.map(c=>({...c,saldoInicial:s[c.id]||0}));localStorage.setItem(keyFor("cuentas"),JSON.stringify(cuentas));await guardarCuentas(contexto);await sincronizarPendientes();if(window.db&&window.auth?.currentUser){const colNamePersonal="movimientos_personal";const colNameNegocio="movimientos_negocio";const uidPersonal=window.auth.currentUser.uid;const uidNegocio=negocioId||window.auth.currentUser.uid;try{const snapPersonal=await window.fbGetDocs(window.fbCollection(window.db,"users",uidPersonal,colNamePersonal));const snapNegocio=await window.fbGetDocs(window.fbCollection(window.db,"users",uidNegocio,colNameNegocio));for(const doc of snapPersonal.docs)await window.fbDeleteDoc(window.fbDoc(window.db,"users",uidPersonal,colNamePersonal,doc.id));for(const doc of snapNegocio.docs)await window.fbDeleteDoc(window.fbDoc(window.db,"users",uidNegocio,colNameNegocio,doc.id));}catch(e){console.error("Error limpiando movimientos:",e);}}data=[];await limpiarCola();localStorage.setItem(keyFor("dataCache"),"[]");guardarDatos();const sc=$("syncCount");if(sc)sc.innerText=0;$("modalCierre").classList.remove("open");render();toast("✔ Mes cerrado: "+label+" - Historial guardado");}
 async function verificarCierreAutomatico(){
   if(!window.auth?.currentUser) return;
   const ahora=new Date();
@@ -499,15 +503,16 @@ async function verificarCierreAutomatico(){
   const mesCerrado={id:mesKey,label:label,fecha:fechaHoyColombia(),ing,gas,balance:ing-gas,saldosCierre:{...s},movimientos:[...data],cuentas:cuentas.map(c=>({id:c.id,nombre:c.nombre,icon:c.icon,saldoFinal:s[c.id]||0})),createdAt:Date.now()};
   historial.unshift(mesCerrado);
   localStorage.setItem(keyFor("historialMeses"),JSON.stringify(historial));
-  if(window.db&&window.auth?.currentUser){
-    try{
-      const colHistorico="historial_mensual";
-      const historicoRef=window.fbDoc(window.db,"users",window.auth.currentUser.uid,colHistorico,mesKey);
-      await window.fbUpdateDoc(historicoRef,mesCerrado).catch(async()=>{
-        await window.fbAddDoc(window.fbCollection(window.db,"users",window.auth.currentUser.uid,colHistorico),mesCerrado);
-      });
-    }catch(e){console.error(e);}
-  }
+  if (window.db && window.auth?.currentUser) {
+  try {
+    const uidPersonal = window.auth.currentUser.uid;
+    const uidNegocio = negocioId || window.auth.currentUser.uid;
+    const snapP = await window.fbGetDocs(window.fbCollection(window.db, "users", uidPersonal, "movimientos_personal"));
+    const snapN = await window.fbGetDocs(window.fbCollection(window.db, "users", uidNegocio, "movimientos_negocio"));
+    for (const doc of snapP.docs) await window.fbDeleteDoc(window.fbDoc(window.db, "users", uidPersonal, "movimientos_personal", doc.id));
+    for (const doc of snapN.docs) await window.fbDeleteDoc(window.fbDoc(window.db, "users", uidNegocio, "movimientos_negocio", doc.id));
+  } catch (e) { console.error(e); }
+}
   cuentas=cuentas.map(c=>({...c,saldoInicial:s[c.id]||0}));
   localStorage.setItem(keyFor("cuentas"),JSON.stringify(cuentas));
   await guardarCuentas(contexto);
@@ -558,7 +563,7 @@ window.confirmarRevertirCompra = async function() {
 
     if (window.db && window.auth?.currentUser && !idMov.startsWith("local_")) {
       try {
-        await window.fbDeleteDoc(window.fbDoc(window.db, "users", window.auth.currentUser.uid, "movimientos_negocio", idMov));
+        await window.fbDeleteDoc(window.fbDoc(window.db, "users", negocioId || window.auth.currentUser.uid, "movimientos_negocio", idMov));
       } catch(e) { console.error("Error eliminando movimiento:", e); }
     }
 
